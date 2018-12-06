@@ -5,11 +5,16 @@ import (
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
 
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 )
+
+type BuildpackYAML struct {
+	Config httpd.Config `yaml:"httpd"`
+}
 
 func main() {
 	detectionContext, err := detect.DefaultDetect()
@@ -36,8 +41,26 @@ func runDetect(context detect.Detect) (int, error) {
 		return context.Fail(), fmt.Errorf("unable to find httpd.conf")
 	}
 
+	// TODO : we should add functionality to libbuildpack or libcfbuildpack to load buildpack.yml files as that is the generic way to configure them
+	buildpackYAML, configFile := BuildpackYAML{}, filepath.Join(context.Application.Root, "buildpack.yml")
+	if exists, err := layers.FileExists(configFile); err != nil {
+		return context.Fail(), err
+	} else if exists {
+		file, err := os.Open(configFile)
+		if err != nil {
+			return context.Fail(), err
+		}
+		defer file.Close()
+
+		err = yaml.NewDecoder(file).Decode(&buildpackYAML)
+		if err != nil {
+			return context.Fail(), err
+		}
+	}
+
 	return context.Pass(buildplan.BuildPlan{
 		httpd.Dependency: buildplan.Dependency{
+			Version:  buildpackYAML.Config.Version,
 			Metadata: buildplan.Metadata{"launch": true},
 		},
 	})

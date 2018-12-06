@@ -10,7 +10,7 @@ import (
 	"github.com/sclevine/spec/report"
 )
 
-func TestBuild(t *testing.T) {
+func TestUnitBuild(t *testing.T) {
 	RegisterTestingT(t)
 	spec.Run(t, "Build", testBuild, spec.Report(report.Terminal{}))
 }
