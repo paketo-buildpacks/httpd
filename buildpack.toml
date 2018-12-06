@@ -1,0 +1,30 @@
+
+[buildpack]
+id = "org.cloudfoundry.buildpacks.httpd"
+name = "Apache HTTP Server Buildpack"
+version = "0.0.1"
+
+[[metadata.dependencies]]
+id = "httpd"
+name = "Apache HTTP Server"
+sha256 = "303a56729e6775ecb8f76fb6710eaf3f9c58a18f4624b7e92546585b9d10f33c"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs2"]
+uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.37-linux-x64-cflinuxfs2-303a5672.tgz"
+version = "2.4.37"
+
+[[metadata.dependencies]]
+id = "httpd"
+name = "Apache HTTP Server"
+sha256 = "269a2e7b4727f29e00f7e34f73457b644828800fcabf05be2d5c2c140bd1ede3"
+stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
+uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.37-linux-x64-cflinuxfs3-269a2e7b.tgz"
+version = "2.4.37"
+
+[[stacks]]
+id = "org.cloudfoundry.stacks.cflinuxfs3"
+
+[[stacks]]
+id = "org.cloudfoundry.stacks.cflinuxfs2"
+
+[[stacks]]
+id = "io.buildpacks.stacks.bionic"
