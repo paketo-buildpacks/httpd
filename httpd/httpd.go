@@ -1,19 +1,24 @@
 package httpd
 
 import (
+	"fmt"
+	"github.com/buildpack/libbuildpack/application"
 	"github.com/cloudfoundry/libcfbuildpack/build"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"path/filepath"
 )
 
 const Dependency = "httpd"
 
 type Contributor struct {
+	app                application.Application
 	launchContribution bool
 	launchLayer        layers.Layers
 	httpdLayer         layers.DependencyLayer
 }
 
-func NewContributor(context build.Build) (Contributor, bool, error) {
+func NewContributor(context build.Build) (c Contributor, willContribute bool, err error) {
 	plan, wantDependency := context.BuildPlan[Dependency]
 	if !wantDependency {
 		return Contributor{}, false, nil
@@ -30,6 +35,7 @@ func NewContributor(context build.Build) (Contributor, bool, error) {
 	}
 
 	contributor := Contributor{
+		app:         context.Application,
 		launchLayer: context.Layers,
 		httpdLayer:  context.Layers.DependencyLayer(dep),
 	}
@@ -44,12 +50,20 @@ func NewContributor(context build.Build) (Contributor, bool, error) {
 func (c Contributor) Contribute() error {
 	return c.httpdLayer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
 		layer.Logger.SubsequentLine("Expanding to %s", layer.Root)
-		if err := layers.ExtractTarGz(artifact, layer.Root, 1); err != nil {
+		if err := helper.ExtractTarGz(artifact, layer.Root, 1); err != nil {
+			return err
+		}
+
+		if err := layer.OverrideLaunchEnv("APP_ROOT", c.app.Root); err != nil {
+			return err
+		}
+
+		if err := layer.OverrideLaunchEnv("SERVER_ROOT", layer.Root); err != nil {
 			return err
 		}
 
 		return c.launchLayer.WriteMetadata(layers.Metadata{
-			Processes: []layers.Process{{"web", `apachectl -f "httpd.conf" -k start -DFOREGROUND`}},
+			Processes: []layers.Process{{"web", fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(c.app.Root,"httpd.conf"))}},
 		})
 	}, c.flags()...)
 }

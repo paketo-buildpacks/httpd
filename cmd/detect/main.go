@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
 	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
@@ -32,7 +32,7 @@ func main() {
 }
 
 func runDetect(context detect.Detect) (int, error) {
-	exists, err := layers.FileExists(filepath.Join(context.Application.Root, "httpd.conf"))
+	exists, err := helper.FileExists(filepath.Join(context.Application.Root, "httpd.conf"))
 	if err != nil {
 		return context.Fail(), err
 	}
@@ -43,7 +43,7 @@ func runDetect(context detect.Detect) (int, error) {
 
 	// TODO : we should add functionality to libbuildpack or libcfbuildpack to load buildpack.yml files as that is the generic way to configure them
 	buildpackYAML, configFile := BuildpackYAML{}, filepath.Join(context.Application.Root, "buildpack.yml")
-	if exists, err := layers.FileExists(configFile); err != nil {
+	if exists, err := helper.FileExists(configFile); err != nil {
 		return context.Fail(), err
 	} else if exists {
 		file, err := os.Open(configFile)
