@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"gopkg.in/yaml.v2"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/cloudfoundry/libcfbuildpack/detect"
@@ -31,8 +28,7 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 
 	when("there is an httpd.conf", func() {
 		it.Before(func() {
-			// TODO : replace this with testing helper methods when they have been implemented
-			layers.WriteToFile(strings.NewReader(""), filepath.Join(factory.Detect.Application.Root, "httpd.conf"), 0666)
+			test.WriteFile(t, filepath.Join(factory.Detect.Application.Root, "httpd.conf"),"")
 		})
 
 		it("should pass with the default version of httpd", func() {
@@ -41,11 +37,11 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(code).To(Equal(detect.PassStatusCode))
 
-			test.BeBuildPlanLike(t, factory.Output, buildplan.BuildPlan{
+			Expect(factory.Output).To(Equal(buildplan.BuildPlan{
 				httpd.Dependency: buildplan.Dependency{
 					Metadata: buildplan.Metadata{"launch": true},
 				},
-			})
+			}))
 		})
 
 		when("there is a buildpack.yml", func() {
@@ -57,38 +53,34 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 				}
 				buf, _ := yaml.Marshal(buildpackYAML)
 
-				// TODO : replace this with testing helper methods when they have been implemented
-				layers.WriteToFile(bytes.NewBuffer(buf), filepath.Join(factory.Detect.Application.Root, "buildpack.yml"), 0666)
+				test.WriteFile(t, filepath.Join(factory.Detect.Application.Root, "buildpack.yml"), string(buf))
 
 				code, err := runDetect(factory.Detect)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(code).To(Equal(detect.PassStatusCode))
 
-				test.BeBuildPlanLike(t, factory.Output, buildplan.BuildPlan{
+				Expect(factory.Output).To(Equal(buildplan.BuildPlan{
 					httpd.Dependency: buildplan.Dependency{
 						Version:  "1.2.3",
 						Metadata: buildplan.Metadata{"launch": true},
 					},
-				})
+				}))
 			})
 
 			it("should request the default version when no version is requested", func() {
-				buf, _ := yaml.Marshal(BuildpackYAML{})
-
-				// TODO : replace this with testing helper methods when they have been implemented
-				layers.WriteToFile(bytes.NewBuffer(buf), filepath.Join(factory.Detect.Application.Root, "buildpack.yml"), 0666)
+				test.WriteFile(t, filepath.Join(factory.Detect.Application.Root, "buildpack.yml"), " ")
 
 				code, err := runDetect(factory.Detect)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(code).To(Equal(detect.PassStatusCode))
 
-				test.BeBuildPlanLike(t, factory.Output, buildplan.BuildPlan{
+				Expect(factory.Output).To(Equal(buildplan.BuildPlan{
 					httpd.Dependency: buildplan.Dependency{
 						Metadata: buildplan.Metadata{"launch": true},
 					},
-				})
+				}))
 			})
 		})
 	})
