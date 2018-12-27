@@ -22,6 +22,11 @@ install_pack() {
     rm $PACK_ARTIFACT
 }
 
+configure_pack() {
+    pack add-stack org.cloudfoundry.stacks.cflinuxfs3 \
+        --build-image cfbuildpacks/cflinuxfs3-cnb-experimental:build \
+        --run-image cfbuildpacks/cflinuxfs3-cnb-experimental:run || echo "Ignoring add stack error"
+}
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
@@ -34,3 +39,4 @@ elif [[ $(.bin/pack version | cut -d ' ' -f 2) != "v$PACK_VERSION" ]]; then
     rm .bin/pack
     install_pack
 fi
+configure_pack
