@@ -2,10 +2,11 @@ package integration
 
 import (
 	"fmt"
-	"github.com/buildpack/libbuildpack/buildpack"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/buildpack/libbuildpack/buildpack"
 
 	"github.com/cloudfoundry/dagger"
 
@@ -29,17 +30,17 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 			//set up buildermetadata for 'old way' of using pack in dagger
 			builderMetadata := dagger.BuilderMetadata{
-				Buildpacks:[]dagger.Buildpack {
+				Buildpacks: []dagger.Buildpack{
 					{
-						ID: "org.cloudfoundry.buildpacks.httpd",
+						ID:  "org.cloudfoundry.buildpacks.httpd",
 						URI: uri,
 					},
 				},
-				Groups:[]dagger.Group{
+				Groups: []dagger.Group{
 					{
 						[]buildpack.Info{
 							{
-								ID: "org.cloudfoundry.buildpacks.httpd",
+								ID:      "org.cloudfoundry.buildpacks.httpd",
 								Version: "0.0.1",
 							},
 						},
@@ -50,7 +51,8 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			app, err := dagger.Pack(filepath.Join("fixtures", "simple_app"), builderMetadata, dagger.CFLINUXFS3)
 			Expect(err).ToNot(HaveOccurred())
 
-			app.SetHealthCheck("","3s","1s")
+			app.SetHealthCheck("", "3s", "1s")
+			app.Env["PORT"] = "8080"
 
 			err = app.Start()
 			if err != nil {
