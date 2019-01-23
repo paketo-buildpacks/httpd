@@ -16,11 +16,14 @@ import (
 )
 
 func TestUnitHTTPD(t *testing.T) {
-	RegisterTestingT(t)
 	spec.Run(t, "HTTPD", testHTTPD, spec.Report(report.Terminal{}))
 }
 
 func testHTTPD(t *testing.T, when spec.G, it spec.S) {
+	it.Before(func() {
+		RegisterTestingT(t)
+	})
+
 	when("NewContributor", func() {
 		var stubHTTPDFixture = filepath.Join("fixtures", "stub-httpd.tar.gz")
 

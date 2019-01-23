@@ -15,7 +15,6 @@ import (
 )
 
 func TestUnitDetect(t *testing.T) {
-	RegisterTestingT(t)
 	spec.Run(t, "Detect", testDetect, spec.Report(report.Terminal{}))
 }
 
@@ -23,6 +22,7 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 	var factory *test.DetectFactory
 
 	it.Before(func() {
+		RegisterTestingT(t)
 		factory = test.NewDetectFactory(t)
 	})
 
