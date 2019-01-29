@@ -17,7 +17,7 @@ install_pack() {
 
     PACK_ARTIFACT=pack-$PACK_VERSION-$OS.tar.gz
 
-    wget https://github.com/buildpack/pack/releases/download/v$PACK_VERSION/$PACK_ARTIFACT
+    curl -O -L -s https://github.com/buildpack/pack/releases/download/v$PACK_VERSION/$PACK_ARTIFACT
     tar xzvf $PACK_ARTIFACT -C .bin
     rm $PACK_ARTIFACT
 }
