@@ -22,6 +22,7 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
+	"github.com/cloudfoundry/php-cnb/php"
 
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -96,7 +97,17 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	when("there is NOT an httpd.conf", func() {
-		it("should not pass", func() {
+		it("should pass if `php-binary` is in the build plan", func() {
+			factory.AddBuildPlan(php.Dependency, buildplan.Dependency{})
+
+			code, err := runDetect(factory.Detect)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(code).To(Equal(detect.PassStatusCode))
+			Expect(factory.Output).To(Equal(buildplan.BuildPlan{}))
+		})
+
+		it("should fail if `php-binary` is not in the build plan", func() {
 			code, err := runDetect(factory.Detect)
 			Expect(err).To(HaveOccurred())
 

@@ -24,6 +24,7 @@ import (
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
+	"github.com/cloudfoundry/php-cnb/php"
 
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 )
@@ -49,12 +50,18 @@ func main() {
 }
 
 func runDetect(context detect.Detect) (int, error) {
-	exists, err := helper.FileExists(filepath.Join(context.Application.Root, "httpd.conf"))
+	_, phpIsPossible := context.BuildPlan[php.Dependency]
+	if phpIsPossible {
+		context.Logger.SubsequentLine("PHP is in the buildplan, so preparing to serve PHP.")
+		return context.Pass(buildplan.BuildPlan{})
+	}
+
+	httpdConfExists, err := helper.FileExists(filepath.Join(context.Application.Root, "httpd.conf"))
 	if err != nil {
 		return context.Fail(), err
 	}
 
-	if !exists {
+	if !httpdConfExists {
 		return context.Fail(), fmt.Errorf("unable to find httpd.conf")
 	}
 
