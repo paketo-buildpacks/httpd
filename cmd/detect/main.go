@@ -1,26 +1,42 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package main
 
 import (
 	"fmt"
-	"github.com/buildpack/libbuildpack/buildplan"
-	"github.com/cloudfoundry/httpd-cnb/httpd"
-	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/buildpack/libbuildpack/buildplan"
+	"github.com/cloudfoundry/httpd-cnb/httpd"
+	"github.com/cloudfoundry/libcfbuildpack/helper"
+
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 )
-
-type BuildpackYAML struct {
-	Config httpd.Config `yaml:"httpd"`
-}
 
 func main() {
 	detectionContext, err := detect.DefaultDetect()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "failed to run detection: %s", err)
+		os.Exit(101)
+	}
+
+	if err := detectionContext.BuildPlan.Init(); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to initialize Build Plan: %s\n", err)
 		os.Exit(101)
 	}
 
@@ -42,25 +58,9 @@ func runDetect(context detect.Detect) (int, error) {
 		return context.Fail(), fmt.Errorf("unable to find httpd.conf")
 	}
 
-	buildpackYAML, configFile := BuildpackYAML{}, filepath.Join(context.Application.Root, "buildpack.yml")
-	if exists, err := helper.FileExists(configFile); err != nil {
+	buildpackYAML, err := httpd.LoadBuildpackYAML(context.Application.Root)
+	if err != nil {
 		return context.Fail(), err
-	} else if exists {
-		file, err := os.Open(configFile)
-		if err != nil {
-			return context.Fail(), err
-		}
-		defer file.Close()
-
-		contents, err := ioutil.ReadAll(file)
-		if err != nil {
-			return context.Fail(), err
-		}
-
-		err = yaml.Unmarshal(contents, &buildpackYAML)
-		if err != nil {
-			return context.Fail(), err
-		}
 	}
 
 	return context.Pass(buildplan.BuildPlan{

@@ -1,80 +1,64 @@
+/*
+ * Copyright 2018-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package httpd
 
 import (
-	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 
-	"github.com/buildpack/libbuildpack/application"
-	"github.com/cloudfoundry/libcfbuildpack/build"
 	"github.com/cloudfoundry/libcfbuildpack/helper"
-	"github.com/cloudfoundry/libcfbuildpack/layers"
+	yaml "gopkg.in/yaml.v2"
 )
 
+// Dependency is the key used in the build plan by this buildpack
 const Dependency = "httpd"
 
-type Contributor struct {
-	app                application.Application
-	launchContribution bool
-	launchLayer        layers.Layers
-	httpdLayer         layers.DependencyLayer
+// BuildpackYAML defines configuration options allowed to end users
+type BuildpackYAML struct {
+	Config Config `yaml:"httpd"`
 }
 
-func NewContributor(context build.Build) (c Contributor, willContribute bool, err error) {
-	plan, wantDependency := context.BuildPlan[Dependency]
-	if !wantDependency {
-		return Contributor{}, false, nil
-	}
-
-	deps, err := context.Buildpack.Dependencies()
-	if err != nil {
-		return Contributor{}, false, err
-	}
-
-	dep, err := deps.Best(Dependency, plan.Version, context.Stack)
-	if err != nil {
-		return Contributor{}, false, err
-	}
-
-	contributor := Contributor{
-		app:         context.Application,
-		launchLayer: context.Layers,
-		httpdLayer:  context.Layers.DependencyLayer(dep),
-	}
-
-	if _, ok := plan.Metadata["launch"]; ok {
-		contributor.launchContribution = true
-	}
-
-	return contributor, true, nil
+// Config is used by BuildpackYAML and defines HTTPD specific config options available to users
+type Config struct {
+	Version string `yaml:"version"`
 }
 
-func (c Contributor) Contribute() error {
-	return c.httpdLayer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
-		layer.Logger.SubsequentLine("Expanding to %s", layer.Root)
-		if err := helper.ExtractTarGz(artifact, layer.Root, 1); err != nil {
-			return err
+// LoadBuildpackYAML reads `buildpack.yml` and HTTPD specific config options in it
+func LoadBuildpackYAML(appRoot string) (BuildpackYAML, error) {
+	buildpackYAML, configFile := BuildpackYAML{}, filepath.Join(appRoot, "buildpack.yml")
+	if exists, err := helper.FileExists(configFile); err != nil {
+		return BuildpackYAML{}, err
+	} else if exists {
+		file, err := os.Open(configFile)
+		if err != nil {
+			return BuildpackYAML{}, err
+		}
+		defer file.Close()
+
+		contents, err := ioutil.ReadAll(file)
+		if err != nil {
+			return BuildpackYAML{}, err
 		}
 
-		if err := layer.OverrideLaunchEnv("APP_ROOT", c.app.Root); err != nil {
-			return err
+		err = yaml.Unmarshal(contents, &buildpackYAML)
+		if err != nil {
+			return BuildpackYAML{}, err
 		}
-
-		if err := layer.OverrideLaunchEnv("SERVER_ROOT", layer.Root); err != nil {
-			return err
-		}
-
-		return c.launchLayer.WriteMetadata(layers.Metadata{
-			Processes: []layers.Process{{"web", fmt.Sprintf(`httpd -f %s -k start -DFOREGROUND`, filepath.Join(c.app.Root, "httpd.conf"))}},
-		})
-	}, c.flags()...)
-}
-
-func (n Contributor) flags() []layers.Flag {
-	var flags []layers.Flag
-
-	if n.launchContribution {
-		flags = append(flags, layers.Launch)
 	}
-
-	return flags
+	return buildpackYAML, nil
 }
