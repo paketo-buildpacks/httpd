@@ -21,7 +21,7 @@ github.com/cloudfoundry/cnb-tools/package
 github.com/cloudfoundry/cnb-tools/unit
 github.com/cloudfoundry/cnb-tools/action
 github.com/cloudfoundry/cnb-tools/utils
-# github.com/cloudfoundry/dagger v0.0.0-20190204200826-d194e96e09ab
+# github.com/cloudfoundry/dagger v0.0.0-20190219165033-d9b29e00cb50
 github.com/cloudfoundry/dagger
 # github.com/cloudfoundry/libcfbuildpack v1.42.0
 github.com/cloudfoundry/libcfbuildpack/build
@@ -56,6 +56,8 @@ github.com/onsi/gomega/matchers/support/goraph/bipartitegraph
 github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
 # github.com/sclevine/spec v1.2.0
 github.com/sclevine/spec
 github.com/sclevine/spec/report

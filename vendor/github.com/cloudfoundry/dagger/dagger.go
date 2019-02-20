@@ -16,11 +16,14 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/libcfbuildpack/helper"
+	"github.com/pkg/errors"
 )
 
 const (
-	CFLINUXFS3 = "org.cloudfoundry.stacks.cflinuxfs3"
-	BIONIC     = "io.buildpacks.stacks.bionic"
+	CFLINUXFS3          = "org.cloudfoundry.stacks.cflinuxfs3"
+	BIONIC              = "io.buildpacks.stacks.bionic"
+	DEFAULT_BUILD_IMAGE = "cfbuildpacks/cflinuxfs3-cnb-experimental:build"
+	DEFAULT_RUN_IMAGE   = "cfbuildpacks/cflinuxfs3-cnb-experimental:run"
 )
 
 var downloadCache sync.Map
@@ -31,7 +34,8 @@ func init() {
 }
 
 func PackageBuildpack() (string, error) {
-	cmd := exec.Command("../scripts/package.sh")
+	cmd := exec.Command("./scripts/package.sh")
+	cmd.Dir = "../"
 	cmd.Stderr = os.Stderr
 	out, err := cmd.Output()
 	if err != nil {
@@ -101,23 +105,21 @@ func GetLatestBuildpack(name string) (string, error) {
 
 func PackBuild(appDir string, buildpacks ...string) (*App, error) {
 	appImageName := randomString(16)
-	buildStdout := &bytes.Buffer{}
-	buildStderr := &bytes.Buffer{}
+	buildLogs := &bytes.Buffer{}
 
 	cmd := exec.Command("pack", "build", appImageName, "--builder", "cfbuildpacks/cflinuxfs3-cnb-test-builder", "--clear-cache")
 	for _, bp := range buildpacks {
 		cmd.Args = append(cmd.Args, "--buildpack", bp)
 	}
 	cmd.Dir = appDir
-	cmd.Stdout = io.MultiWriter(os.Stdout, buildStdout)
-	cmd.Stderr = io.MultiWriter(os.Stderr, buildStderr)
+	cmd.Stdout = io.MultiWriter(os.Stdout, buildLogs)
+	cmd.Stderr = io.MultiWriter(os.Stderr, buildLogs)
 	if err := cmd.Run(); err != nil {
 		return nil, err
 	}
 
 	app := &App{
-		BuildStderr: buildStderr,
-		BuildStdout: buildStdout,
+		buildLogs:   buildLogs,
 		Env:         make(map[string]string),
 		imageName:   appImageName,
 		fixtureName: appDir,
@@ -125,9 +127,32 @@ func PackBuild(appDir string, buildpacks ...string) (*App, error) {
 	return app, nil
 }
 
+func BuildCFLinuxFS3() error {
+	cmd := exec.Command("pack", "stacks", "--no-color")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.Wrap(err, "could not get stack list")
+	}
+
+	contains, err := regexp.Match(CFLINUXFS3, out)
+
+	if err != nil {
+		return errors.Wrap(err, "error running regex match")
+	} else if contains {
+		fmt.Println("cflinuxfs3 stack already added")
+		return nil
+	}
+
+	cmd = exec.Command("pack", "add-stack", CFLINUXFS3, "--build-image", DEFAULT_BUILD_IMAGE, "--run-image", DEFAULT_RUN_IMAGE)
+	if err = cmd.Run(); err != nil {
+		return errors.Wrap(err, "could not add stack")
+	}
+
+	return nil
+}
+
 type App struct {
-	BuildStdout *bytes.Buffer
-	BuildStderr *bytes.Buffer
+	buildLogs   *bytes.Buffer
 	Env         map[string]string
 	logProc     *exec.Cmd
 	imageName   string
@@ -141,6 +166,10 @@ type HealthCheck struct {
 	command  string
 	interval string
 	timeout  string
+}
+
+func (a *App) BuildLogs() string {
+	return stripColor(a.buildLogs.String())
 }
 
 func (a *App) SetHealthCheck(command, interval, timeout string) {
@@ -254,6 +283,15 @@ func (a *App) Destroy() error {
 	return nil
 }
 
+func (a *App) Files(path string) ([]string, error) {
+	cmd := exec.Command("docker", "run", a.imageName, "find", "./..", "-wholename", fmt.Sprintf("*%s*", path))
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return []string{}, err
+	}
+	return strings.Split(string(output), "\n"), nil
+}
+
 func (a *App) Info() (cID string, imageID string, cacheID []string, e error) {
 	volumes, err := getCacheVolumes()
 	if err != nil {
@@ -270,7 +308,7 @@ func (a *App) Logs() (string, error) {
 		return "", err
 	}
 
-	return string(output), nil
+	return stripColor(string(output)), nil
 }
 
 func (a *App) HTTPGet(path string) (string, map[string][]string, error) {
@@ -289,6 +327,18 @@ func (a *App) HTTPGet(path string) (string, map[string][]string, error) {
 	}
 
 	return string(body), resp.Header, nil
+}
+
+func (a *App) HTTPGetBody(path string) (string, error) {
+	resp, _, err := a.HTTPGet(path)
+	return resp, err
+}
+
+func stripColor(input string) string {
+	const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
+
+	var re = regexp.MustCompile(ansi)
+	return re.ReplaceAllString(input, "")
 }
 
 func getCacheVolumes() ([]string, error) {
