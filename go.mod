@@ -2,9 +2,8 @@ module github.com/cloudfoundry/httpd-cnb
 
 require (
 	github.com/buildpack/libbuildpack v1.11.0
-	github.com/cloudfoundry/cnb-tools v0.0.0-20190219172305-154ea1cc62b2
-	github.com/cloudfoundry/dagger v0.0.0-20190219165033-d9b29e00cb50
-	github.com/cloudfoundry/libcfbuildpack v1.45.0
+	github.com/cloudfoundry/dagger v0.0.0-20190319135526-f8eb1263b193
+	github.com/cloudfoundry/libcfbuildpack v1.48.0
 	github.com/cloudfoundry/php-cnb v0.0.1
 	github.com/onsi/gomega v1.4.3
 	github.com/sclevine/spec v1.2.0
