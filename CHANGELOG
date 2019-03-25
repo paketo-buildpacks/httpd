@@ -1,3 +1,15 @@
+v0.0.2 Mar 25, 2019
+====================
+
+* Bump libcfbuildpack and dagger
+  (https://www.pivotaltracker.com/story/show/164601296)
+  (https://www.pivotaltracker.com/story/show/163874965)
+  (https://www.pivotaltracker.com/story/show/163595064)
+
+* Rebuild httpd 2.4.38
+  for stack(s) org.cloudfoundry.stacks.cflinuxfs2, org.cloudfoundry.stacks.cflinuxfs3
+  (https://www.pivotaltracker.com/story/show/163412491)
+
 v0.0.1 Jan 31, 2019
 ====================
 

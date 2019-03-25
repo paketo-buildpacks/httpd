@@ -2,7 +2,7 @@
 [buildpack]
 id = "org.cloudfoundry.buildpacks.httpd"
 name = "Apache HTTP Server Buildpack"
-version = "0.0.1"
+version = "0.0.2"
 
 [[metadata.dependencies]]
 id = "httpd"
