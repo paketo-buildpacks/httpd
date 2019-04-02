@@ -7,18 +7,18 @@ version = "0.0.2"
 [[metadata.dependencies]]
 id = "httpd"
 name = "Apache HTTP Server"
-sha256 = "e052e922536845c0d4ae289c182c2210de056ee0507ebd2c641d95c96e992b68"
+sha256 = "feb240f139dcac8d435d515ed804d7768da7da861a4641a45cd39fa623c7bee5"
 stacks = ["org.cloudfoundry.stacks.cflinuxfs2"]
-uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.38-linux-x64-cflinuxfs2-e052e922.tgz"
-version = "2.4.38"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.39-linux-x64-cflinuxfs2-feb240f1.tgz"
+version = "2.4.39"
 
 [[metadata.dependencies]]
 id = "httpd"
 name = "Apache HTTP Server"
-sha256 = "a0a4fd420fc6efe19654333c58b0a6edff6143d7de72f3ddf5beed8a0e05600c"
+sha256 = "a6ad42b88561c78777360cc19d0d8c2e6ae516fad3928adcb4a6fd750a7141e9"
 stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
-uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.38-linux-x64-cflinuxfs3-a0a4fd42.tgz"
-version = "2.4.38"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.39-linux-x64-cflinuxfs3-a6ad42b8.tgz"
+version = "2.4.39"
 
 [[stacks]]
 id = "org.cloudfoundry.stacks.cflinuxfs3"
