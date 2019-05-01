@@ -30,7 +30,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var (
+	uri string
+)
+
 func TestIntegration(t *testing.T) {
+	RegisterTestingT(t)
+	root, err := dagger.FindBPRoot()
+	Expect(err).ToNot(HaveOccurred())
+	uri, err = dagger.PackageBuildpack(root)
+	Expect(err).NotTo(HaveOccurred())
+	defer os.RemoveAll(uri)
 	spec.Run(t, "Integration", testIntegration, spec.Report(report.Terminal{}))
 }
 
@@ -41,14 +51,10 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 	when("push simple app", func() {
 		it("serves up staticfile", func() {
-			uri, err := dagger.PackageBuildpack()
-			Expect(err).ToNot(HaveOccurred())
-
 			app, err := dagger.PackBuild(filepath.Join("fixtures", "simple_app"), uri)
 			Expect(err).ToNot(HaveOccurred())
 
 			app.SetHealthCheck("", "3s", "1s")
-			app.Env["PORT"] = "8080"
 
 			err = app.Start()
 			if err != nil {
