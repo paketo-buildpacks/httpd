@@ -1,6 +1,6 @@
 
 [buildpack]
-id = "org.cloudfoundry.buildpacks.httpd"
+id = "org.cloudfoundry.httpd"
 name = "Apache HTTP Server Buildpack"
 version = "0.0.2"
 
