@@ -18,9 +18,9 @@ package build
 
 import (
 	"github.com/buildpack/libbuildpack/build"
+	"github.com/buildpack/libbuildpack/buildplan"
 	bp "github.com/buildpack/libbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 	"github.com/cloudfoundry/libcfbuildpack/runner"
@@ -40,9 +40,6 @@ type Build struct {
 	// Logger is used to write debug and info to the console.
 	Logger logger.Logger
 
-	// Plans represents required contributions.
-	Plans buildpackplan.Plans
-
 	// Runner is used to run commands outside of the process.
 	Runner runner.Runner
 
@@ -52,9 +49,11 @@ type Build struct {
 
 // Success signals a successful build by exiting with a zero status code.  Combines specied build plan with build
 // plan entries for all contributed dependencies.
-func (b Build) Success(plans ...buildpackplan.Plan) (int, error) {
+func (b Build) Success(buildPlan buildplan.BuildPlan) (int, error) {
+	bp := buildplan.BuildPlan{}
+	bp.Merge(b.Layers.DependencyBuildPlans, buildPlan)
 
-	code, err := b.Build.Success(append(b.Layers.Plans.Entries, plans...)...)
+	code, err := b.Build.Success(bp)
 	if err != nil {
 		return code, err
 	}
@@ -81,7 +80,6 @@ func DefaultBuild() (Build, error) {
 	logger := logger.Logger{Logger: b.Logger}
 	buildpack := buildpack.NewBuildpack(b.Buildpack, logger)
 	layers := layers.NewLayers(b.Layers, bp.NewLayers(buildpack.CacheRoot, b.Logger), buildpack, logger)
-	plans := buildpackplan.Plans{Plans: b.Plans}
 	services := services.Services{Services: b.Services}
 
 	return Build{
@@ -89,7 +87,6 @@ func DefaultBuild() (Build, error) {
 		buildpack,
 		layers,
 		logger,
-		plans,
 		runner.CommandRunner{},
 		services,
 	}, nil

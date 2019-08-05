@@ -43,6 +43,12 @@ type Detect struct {
 	// Buildpack represents the metadata associated with a buildpack.
 	Buildpack buildpack.Buildpack
 
+	// BuildPlan represents dependencies contributed by previous builds.
+	BuildPlan buildplan.BuildPlan
+
+	// BuildPlanWriter is the writer used to write the BuildPlan in Pass().
+	BuildPlanWriter buildplan.Writer
+
 	// Logger is used to write debug and info to the console.
 	Logger logger.Logger
 
@@ -54,9 +60,6 @@ type Detect struct {
 
 	// Stack is the stack currently available to the application.
 	Stack stack.Stack
-
-	// Writer is the writer used to write the build plan in Pass().
-	Writer buildplan.Writer
 }
 
 // Error signals an error during detection by exiting with a specified non-zero, non-100 status code.
@@ -72,20 +75,10 @@ func (d Detect) Fail() int {
 }
 
 // Pass signals a successful detection by exiting with a 0 status code.
-func (d Detect) Pass(plans ...buildplan.Plan) (int, error) {
+func (d Detect) Pass(buildPlan buildplan.BuildPlan) (int, error) {
 	d.Logger.Debug("Detection passed. Exiting with %d.", PassStatusCode)
 
-	p := buildplan.Plans{}
-
-	if len(plans) > 0 {
-		p.Plan = plans[0]
-	}
-
-	if len(plans) > 1 {
-		p.Or = plans[1:]
-	}
-
-	if err := d.Writer(p); err != nil {
+	if err := buildPlan.Write(d.BuildPlanWriter); err != nil {
 		return -1, err
 	}
 
@@ -114,6 +107,10 @@ func DefaultDetect() (Detect, error) {
 		return Detect{}, err
 	}
 
+	buildPlan := buildplan.BuildPlan{}
+
+	buildPlanWriter := buildplan.DefaultWriter(2)
+
 	platform, err := platform.DefaultPlatform(platformRoot, logger)
 	if err != nil {
 		return Detect{}, err
@@ -129,15 +126,14 @@ func DefaultDetect() (Detect, error) {
 		return Detect{}, err
 	}
 
-	writer := buildplan.DefaultWriter(2)
-
 	return Detect{
 		application,
 		buildpack,
+		buildPlan,
+		buildPlanWriter,
 		logger,
 		platform,
 		services,
 		stack,
-		writer,
 	}, nil
 }

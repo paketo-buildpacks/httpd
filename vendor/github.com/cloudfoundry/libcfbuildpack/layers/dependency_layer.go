@@ -20,8 +20,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/libcfbuildpack/buildpack"
-	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
 	"github.com/cloudfoundry/libcfbuildpack/logger"
 )
 
@@ -32,9 +32,9 @@ type DependencyLayer struct {
 	// Dependency is the dependency provided by this layer.
 	Dependency buildpack.Dependency
 
-	downloadLayer DownloadLayer
-	logger        logger.Logger
-	plans         *buildpackplan.Plans
+	dependencyBuildPlans buildplan.BuildPlan
+	downloadLayer        DownloadLayer
+	logger               logger.Logger
 }
 
 // ArtifactName returns the name portion of the download path for the dependency.
@@ -73,15 +73,14 @@ func (l DependencyLayer) Contribute(contributor DependencyLayerContributor, flag
 func (l *DependencyLayer) contributeToBuildPlan() {
 	l.logger.Debug("Contributing %s to bill-of-materials", l.Dependency.ID)
 
-	l.plans.Entries = append(l.plans.Entries, buildpackplan.Plan{
-		Name:    l.Dependency.ID,
+	l.dependencyBuildPlans[l.Dependency.ID] = buildplan.Dependency{
 		Version: l.Dependency.Version.Original(),
-		Metadata: buildpackplan.Metadata{
+		Metadata: buildplan.Metadata{
 			"name":     l.Dependency.Name,
 			"uri":      l.Dependency.URI,
 			"sha256":   l.Dependency.SHA256,
 			"stacks":   l.Dependency.Stacks,
 			"licenses": l.Dependency.Licenses,
 		},
-	})
+	}
 }
