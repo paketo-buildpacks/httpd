@@ -11,12 +11,12 @@ pre_package = "./scripts/build.sh"
 [[metadata.dependencies]]
 id = "httpd"
 name = "Apache HTTP Server"
-sha256 = "a6ad42b88561c78777360cc19d0d8c2e6ae516fad3928adcb4a6fd750a7141e9"
-source = "http://archive.apache.org/dist/httpd/httpd-2.4.39.tar.bz2"
-source_sha256 = "b4ca9d05773aa59b54d66cd8f4744b945289f084d3be17d7981d1783a5decfa2"
+sha256 = "9e9b61465a2229a8f598db52e609ef0d788313e38567e2fe937416cb5bd9463d"
+source = "http://archive.apache.org/dist/httpd/httpd-2.4.41.tar.bz2"
+source_sha256 = "133d48298fe5315ae9366a0ec66282fa4040efa5d566174481077ade7d18ea40"
 stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
-uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.39-linux-x64-cflinuxfs3-a6ad42b8.tgz"
-version = "2.4.39"
+uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.41-linux-x64-cflinuxfs3-9e9b6146.tgz"
+version = "2.4.41"
 
 [[stacks]]
 id = "org.cloudfoundry.stacks.cflinuxfs3"
