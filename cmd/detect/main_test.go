@@ -22,8 +22,6 @@ import (
 
 	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/cloudfoundry/httpd-cnb/httpd"
-	"github.com/cloudfoundry/php-dist-cnb/php"
-
 	"github.com/cloudfoundry/libcfbuildpack/detect"
 	"github.com/cloudfoundry/libcfbuildpack/test"
 	. "github.com/onsi/gomega"
@@ -54,10 +52,14 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(code).To(Equal(detect.PassStatusCode))
 
-			Expect(factory.Output).To(Equal(buildplan.BuildPlan{
-				httpd.Dependency: buildplan.Dependency{
-					Metadata: buildplan.Metadata{"launch": true},
+			Expect(factory.Plans.Plan).To(Equal(buildplan.Plan{
+				Requires: []buildplan.Required{
+					{
+						Name:     httpd.Dependency,
+						Metadata: buildplan.Metadata{"launch": true},
+					},
 				},
+				Provides: []buildplan.Provided{{Name: httpd.Dependency}},
 			}))
 		})
 
@@ -71,11 +73,15 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 
 				Expect(code).To(Equal(detect.PassStatusCode))
 
-				Expect(factory.Output).To(Equal(buildplan.BuildPlan{
-					httpd.Dependency: buildplan.Dependency{
-						Version:  "1.2.3",
-						Metadata: buildplan.Metadata{"launch": true},
+				Expect(factory.Plans.Plan).To(Equal(buildplan.Plan{
+					Requires: []buildplan.Required{
+						{
+							Name:     httpd.Dependency,
+							Version:  "1.2.3",
+							Metadata: buildplan.Metadata{"launch": true},
+						},
 					},
+					Provides: []buildplan.Provided{{Name: httpd.Dependency}},
 				}))
 			})
 
@@ -87,31 +93,28 @@ func testDetect(t *testing.T, when spec.G, it spec.S) {
 
 				Expect(code).To(Equal(detect.PassStatusCode))
 
-				Expect(factory.Output).To(Equal(buildplan.BuildPlan{
-					httpd.Dependency: buildplan.Dependency{
-						Metadata: buildplan.Metadata{"launch": true},
+				Expect(factory.Plans.Plan).To(Equal(buildplan.Plan{
+					Requires: []buildplan.Required{
+						{
+							Name:     httpd.Dependency,
+							Metadata: buildplan.Metadata{"launch": true},
+						},
 					},
+					Provides: []buildplan.Provided{{Name: httpd.Dependency}},
 				}))
 			})
 		})
 	})
 
 	when("there is NOT an httpd.conf", func() {
-		it("should pass if `php-binary` is in the build plan", func() {
-			factory.AddBuildPlan(php.Dependency, buildplan.Dependency{})
-
+		it("should provide httpd in the buildplan, but not require", func() {
 			code, err := runDetect(factory.Detect)
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(code).To(Equal(detect.PassStatusCode))
-			Expect(factory.Output).To(Equal(buildplan.BuildPlan{}))
-		})
-
-		it("should fail if `php-binary` is not in the build plan", func() {
-			code, err := runDetect(factory.Detect)
-			Expect(err).To(HaveOccurred())
-
-			Expect(code).To(Equal(detect.FailStatusCode))
+			Expect(factory.Plans.Plan).To(Equal(buildplan.Plan{
+				Provides: []buildplan.Provided{{Name: httpd.Dependency}},
+			}))
 		})
 	})
 }

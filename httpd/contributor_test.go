@@ -21,9 +21,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/cloudfoundry/libcfbuildpack/buildpackplan"
+
 	"github.com/cloudfoundry/libcfbuildpack/layers"
 
-	"github.com/buildpack/libbuildpack/buildplan"
 	"github.com/sclevine/spec/report"
 
 	"github.com/cloudfoundry/libcfbuildpack/test"
@@ -45,7 +46,7 @@ func testHTTPDContributor(t *testing.T, when spec.G, it spec.S) {
 
 		it("returns true if a build plan exists", func() {
 			f := test.NewBuildFactory(t)
-			f.AddBuildPlan(Dependency, buildplan.Dependency{})
+			f.AddPlan(buildpackplan.Plan{Name: Dependency})
 			f.AddDependency(Dependency, stubHTTPDFixture)
 
 			_, willContribute, err := NewContributor(f.Build)
@@ -63,8 +64,9 @@ func testHTTPDContributor(t *testing.T, when spec.G, it spec.S) {
 
 		it("should contribute httpd to launch when launch is true", func() {
 			f := test.NewBuildFactory(t)
-			f.AddBuildPlan(Dependency, buildplan.Dependency{
-				Metadata: buildplan.Metadata{"launch": true},
+			f.AddPlan(buildpackplan.Plan{
+				Name:     Dependency,
+				Metadata: buildpackplan.Metadata{"launch": true},
 			})
 			f.AddDependency(Dependency, stubHTTPDFixture)
 

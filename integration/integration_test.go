@@ -45,13 +45,24 @@ func TestIntegration(t *testing.T) {
 }
 
 func testIntegration(t *testing.T, when spec.G, it spec.S) {
+	var (
+		app *dagger.App
+		err error
+	)
+
 	it.Before(func() {
 		RegisterTestingT(t)
 	})
 
+	it.After(func() {
+		if app != nil {
+			app.Destroy()
+		}
+	})
+
 	when("push simple app", func() {
 		it("serves up staticfile", func() {
-			app, err := dagger.PackBuild(filepath.Join("fixtures", "simple_app"), uri)
+			app, err = dagger.PackBuild(filepath.Join("fixtures", "simple_app"), uri)
 			Expect(err).ToNot(HaveOccurred())
 
 			app.SetHealthCheck("", "3s", "1s")
@@ -71,8 +82,6 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 			_, _, err = app.HTTPGet("/index.html")
 			Expect(err).ToNot(HaveOccurred())
-
-			Expect(app.Destroy()).To(Succeed())
 		})
 	})
 }
