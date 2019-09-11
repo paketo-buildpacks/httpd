@@ -82,7 +82,7 @@ func testHTTPDContributor(t *testing.T, when spec.G, it spec.S) {
 			Expect(layer).To(test.HaveOverrideLaunchEnvironment("SERVER_ROOT", layer.Root))
 			Expect(filepath.Join(layer.Root, "stub.txt")).To(BeARegularFile())
 			Expect(f.Build.Layers).To(test.HaveApplicationMetadata(
-				layers.Metadata{Processes: []layers.Process{{"web", fmt.Sprintf(`httpd -f %s -k start -DFOREGROUND`, filepath.Join(f.Build.Application.Root, "httpd.conf"))}}},
+				layers.Metadata{Processes: []layers.Process{{"web", fmt.Sprintf(`httpd -f %s -k start -DFOREGROUND`, filepath.Join(f.Build.Application.Root, "httpd.conf")), false}}},
 			))
 		})
 	})
