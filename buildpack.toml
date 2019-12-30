@@ -1,26 +1,26 @@
 api = "0.2"
 
 [buildpack]
-id = "org.cloudfoundry.httpd"
-name = "Apache HTTP Server Buildpack"
-version = "{{ .Version }}"
+  id = "org.cloudfoundry.httpd"
+  name = "Apache HTTP Server Buildpack"
+  version = "{{ .Version }}"
 
 [metadata]
-include_files = ["bin/build","bin/detect","buildpack.toml"]
-pre_package = "./scripts/build.sh"
+  include_files = ["bin/build", "bin/detect", "buildpack.toml"]
+  pre_package = "./scripts/build.sh"
 
-[[metadata.dependencies]]
-id = "httpd"
-name = "Apache HTTP Server"
-sha256 = "9e9b61465a2229a8f598db52e609ef0d788313e38567e2fe937416cb5bd9463d"
-source = "http://archive.apache.org/dist/httpd/httpd-2.4.41.tar.bz2"
-source_sha256 = "133d48298fe5315ae9366a0ec66282fa4040efa5d566174481077ade7d18ea40"
-stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
-uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.41-linux-x64-cflinuxfs3-9e9b6146.tgz"
-version = "2.4.41"
-
-[[stacks]]
-id = "org.cloudfoundry.stacks.cflinuxfs3"
+  [[metadata.dependencies]]
+    id = "httpd"
+    name = "Apache HTTP Server"
+    sha256 = "c66ed6c74ae4abd353c329c04fa5fd38a10001d72356215c0ee76713341ee421"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.41.tar.bz2"
+    source_sha256 = "133d48298fe5315ae9366a0ec66282fa4040efa5d566174481077ade7d18ea40"
+    stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd-2.4.41-linux-x64-cflinuxfs3-c66ed6c7.tgz"
+    version = "2.4.41"
 
 [[stacks]]
-id = "io.buildpacks.stacks.bionic"
+  id = "org.cloudfoundry.stacks.cflinuxfs3"
+
+[[stacks]]
+  id = "io.buildpacks.stacks.bionic"
