@@ -63,31 +63,34 @@ func NewContributor(context build.Build) (c Contributor, willContribute bool, er
 
 // Contribute will install HTTPD, configure required env variables & set a start command
 func (c Contributor) Contribute() error {
-	return c.httpdLayer.Contribute(func(artifact string, layer layers.DependencyLayer) error {
-		layer.Logger.SubsequentLine("Expanding to %s", layer.Root)
-		if err := helper.ExtractTarGz(artifact, layer.Root, 1); err != nil {
-			return err
-		}
+	err := c.httpdLayer.Contribute(c.callback, c.flags()...)
+	if err != nil {
+		return err
+	}
 
-		if err := layer.OverrideLaunchEnv("APP_ROOT", c.app.Root); err != nil {
-			return err
-		}
-
-		if err := layer.OverrideLaunchEnv("SERVER_ROOT", layer.Root); err != nil {
-			return err
-		}
-
-		return c.launchLayer.WriteApplicationMetadata(layers.Metadata{
-			Processes: []layers.Process{
-				{
-					Type:    "web",
-					Command: fmt.Sprintf(`httpd -f %s -k start -DFOREGROUND`, filepath.Join(c.app.Root, "httpd.conf")),
-					Args:    nil,
-					Direct:  false,
-				},
+	return c.launchLayer.WriteApplicationMetadata(layers.Metadata{
+		Processes: []layers.Process{
+			{
+				Type:    "web",
+				Command: fmt.Sprintf(`httpd -f %s -k start -DFOREGROUND`, filepath.Join(c.app.Root, "httpd.conf")),
+				Args:    nil,
+				Direct:  false,
 			},
-		})
-	}, c.flags()...)
+		},
+	})
+}
+
+func (c Contributor) callback(artifact string, layer layers.DependencyLayer) error {
+	layer.Logger.SubsequentLine("Expanding to %s", layer.Root)
+	if err := helper.ExtractTarGz(artifact, layer.Root, 1); err != nil {
+		return err
+	}
+
+	if err := layer.OverrideLaunchEnv("APP_ROOT", c.app.Root); err != nil {
+		return err
+	}
+
+	return layer.OverrideLaunchEnv("SERVER_ROOT", layer.Root)
 }
 
 func (c Contributor) flags() []layers.Flag {

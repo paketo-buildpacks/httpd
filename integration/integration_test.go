@@ -17,8 +17,6 @@
 package integration
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -55,9 +53,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 	})
 
 	it.After(func() {
-		if app != nil {
-			app.Destroy()
-		}
+		app.Destroy()
 	})
 
 	when("push simple app", func() {
@@ -68,20 +64,34 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 			app.SetHealthCheck("", "3s", "1s")
 
 			err = app.Start()
-			if err != nil {
-				_, err = fmt.Fprintf(os.Stderr, "App failed to start: %v\n", err)
-				containerID, imageName, volumeIDs, err := app.Info()
-				Expect(err).NotTo(HaveOccurred())
-				fmt.Printf("ContainerID: %s\nImage Name: %s\nAll leftover cached volumes: %v\n", containerID, imageName, volumeIDs)
-
-				containerLogs, err := app.Logs()
-				Expect(err).NotTo(HaveOccurred())
-				fmt.Printf("Container Logs:\n %s\n", containerLogs)
-				t.FailNow()
-			}
+			Expect(err).ToNot(HaveOccurred())
 
 			_, _, err = app.HTTPGet("/index.html")
 			Expect(err).ToNot(HaveOccurred())
+		})
+	})
+
+	when("the app is pushed twice", func() {
+		it("uses a cached layer and doesn't run twice", func() {
+			appName := "simple_app"
+
+			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("fixtures", appName), uri)
+			Expect(err).ToNot(HaveOccurred())
+
+			app.SetHealthCheck("", "3s", "1s")
+
+			err = app.Start()
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(app.BuildLogs()).To(MatchRegexp("Apache HTTP Server .*: Contributing to layer"))
+
+			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("fixtures", appName), uri)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(app.BuildLogs()).To(MatchRegexp("Apache HTTP Server .*: Reusing cached layer"))
+			Expect(app.BuildLogs()).NotTo(MatchRegexp("Apache HTTP Server .*: Contributing to layer"))
+
+			Expect(app.Start()).To(Succeed())
 		})
 	})
 }

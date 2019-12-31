@@ -6,7 +6,7 @@ code.cloudfoundry.org/lager
 github.com/BurntSushi/toml
 # github.com/Masterminds/semver v1.5.0
 github.com/Masterminds/semver
-# github.com/buildpack/libbuildpack v1.25.7
+# github.com/buildpack/libbuildpack v1.25.8
 github.com/buildpack/libbuildpack/application
 github.com/buildpack/libbuildpack/build
 github.com/buildpack/libbuildpack/buildpack
@@ -19,10 +19,10 @@ github.com/buildpack/libbuildpack/logger
 github.com/buildpack/libbuildpack/platform
 github.com/buildpack/libbuildpack/services
 github.com/buildpack/libbuildpack/stack
-# github.com/cloudfoundry/dagger v0.0.0-20191213212648-a45390236bb7
+# github.com/cloudfoundry/dagger v0.0.0-20191217204304-b24bb745729d
 github.com/cloudfoundry/dagger
 github.com/cloudfoundry/dagger/utils
-# github.com/cloudfoundry/libcfbuildpack v1.91.12
+# github.com/cloudfoundry/libcfbuildpack v1.91.13
 github.com/cloudfoundry/libcfbuildpack/build
 github.com/cloudfoundry/libcfbuildpack/buildpack
 github.com/cloudfoundry/libcfbuildpack/buildpackplan
@@ -34,7 +34,7 @@ github.com/cloudfoundry/libcfbuildpack/logger
 github.com/cloudfoundry/libcfbuildpack/runner
 github.com/cloudfoundry/libcfbuildpack/services
 github.com/cloudfoundry/libcfbuildpack/test
-# github.com/cloudfoundry/packit v0.0.0-20191202164725-43d6fa19d96c
+# github.com/cloudfoundry/packit v0.0.0-20191220164501-d7f225fefe2c
 github.com/cloudfoundry/packit/pexec
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
