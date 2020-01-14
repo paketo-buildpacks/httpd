@@ -82,7 +82,7 @@ func (c Contributor) Contribute() error {
 
 func (c Contributor) callback(artifact string, layer layers.DependencyLayer) error {
 	layer.Logger.SubsequentLine("Expanding to %s", layer.Root)
-	if err := helper.ExtractTarGz(artifact, layer.Root, 1); err != nil {
+	if err := helper.ExtractTarGz(artifact, layer.Root, 0); err != nil {
 		return err
 	}
 
