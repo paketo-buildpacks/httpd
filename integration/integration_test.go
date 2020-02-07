@@ -58,7 +58,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 	when("push simple app", func() {
 		it("serves up staticfile", func() {
-			app, err = dagger.PackBuild(filepath.Join("fixtures", "simple_app"), uri)
+			app, err = dagger.PackBuild(filepath.Join("testdata", "simple_app"), uri)
 			Expect(err).ToNot(HaveOccurred())
 
 			app.SetHealthCheck("", "3s", "1s")
@@ -75,7 +75,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 		it("uses a cached layer and doesn't run twice", func() {
 			appName := "simple_app"
 
-			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("fixtures", appName), uri)
+			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("testdata", appName), uri)
 			Expect(err).ToNot(HaveOccurred())
 
 			app.SetHealthCheck("", "3s", "1s")
@@ -85,7 +85,7 @@ func testIntegration(t *testing.T, when spec.G, it spec.S) {
 
 			Expect(app.BuildLogs()).To(MatchRegexp("Apache HTTP Server .*: Contributing to layer"))
 
-			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("fixtures", appName), uri)
+			app, err = dagger.PackBuildNamedImage(appName, filepath.Join("testdata", appName), uri)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(app.BuildLogs()).To(MatchRegexp("Apache HTTP Server .*: Reusing cached layer"))
