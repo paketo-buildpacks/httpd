@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/buildpack/libbuildpack v1.25.11
-	github.com/cloudfoundry/dagger v0.0.0-20200114192520-43fb0b3ec98f
+	github.com/cloudfoundry/dagger v0.0.0-20200115142400-b69a9b4eabf4
 	github.com/cloudfoundry/libcfbuildpack v1.91.23
 	github.com/cloudfoundry/packit v0.0.0-20191220164501-d7f225fefe2c // indirect
 	github.com/onsi/gomega v1.8.1
