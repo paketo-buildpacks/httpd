@@ -15,12 +15,6 @@ function main() {
     local full_path args version cached archive offline
     PACKAGE_DIR=${PACKAGE_DIR:-"${BUILDPACKDIR}_$(openssl rand -hex 4)"}
 
-    if ! command -v realpath; then
-      function realpath() {
-        [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
-      }
-    fi
-
     full_path="$(realpath "${PACKAGE_DIR}")"
 
     while [[ "${#}" != 0 ]]; do
