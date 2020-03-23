@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -25,6 +26,9 @@ func TestIntegration(t *testing.T) {
 	uri, err = dagger.PackageBuildpack(root)
 	Expect(err).NotTo(HaveOccurred())
 
+	// HACK: we need to fix dagger and the package.sh scripts so that this isn't required
+	uri = fmt.Sprintf("%s.tgz", uri)
+
 	defer dagger.DeleteBuildpack(uri)
 
 	suite := spec.New("Integration", spec.Report(report.Terminal{}))
@@ -46,5 +50,5 @@ func GetGitVersion() (string, error) {
 		return "", err
 	}
 
-	return strings.TrimSpace(stdout.String()), nil
+	return strings.TrimPrefix(strings.TrimSpace(stdout.String()), "v"), nil
 }
