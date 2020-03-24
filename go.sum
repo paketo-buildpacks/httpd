@@ -18,10 +18,12 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/MasterMinds/semver v1.5.0/go.mod h1:VgTz+o1W0Y0VH2fNMYqTNX5yF13A7uet9xzz3Iqu2pY=
 github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/VividCortex/ewma v1.1.1 h1:MnEK4VOv6n0RSY4vtRe3h11qjxL3+t0B8yOL8iMXdcM=
 github.com/VividCortex/ewma v1.1.1/go.mod h1:2Tkkvm3sRDVXaiyucHiACn4cqf7DpdyLvmxzcbUokwA=
+github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/buildpack/libbuildpack v1.24.5 h1:r7AM7r8ff7ocI1KOopVHEC3EDTCdrj0YeTXkfYuqH0I=
 github.com/buildpack/libbuildpack v1.24.5/go.mod h1:cBmq8aozSDfy+RiKCERQbT6lk0M/Xf3aJWK2PLbPG1g=
 github.com/buildpack/libbuildpack v1.25.11 h1:dsvBRoD90s48tyndN5lQFvJFWpp7bKbSZ3V2wTiDxQc=
@@ -45,8 +47,8 @@ github.com/cloudfoundry/occam v0.0.0-20200323143411-1484bd3b2566 h1:FVpoKNZSEfkx
 github.com/cloudfoundry/occam v0.0.0-20200323143411-1484bd3b2566/go.mod h1:stUR8Lj7wzXGPU7zjYqGdfk/Rtlgq44hD3Vf6lCswms=
 github.com/cloudfoundry/packit v0.0.0-20200213185904-9d0fc689e7af h1:G6pQ5RECHT19D/xLRb25E/mYeTgTvD83PCRnrGlUaNE=
 github.com/cloudfoundry/packit v0.0.0-20200213185904-9d0fc689e7af/go.mod h1:L9r26GHPYpUReBWTpkU5BgyDuNVU01JSG4QsHybI0Bg=
-github.com/cloudfoundry/packit v0.0.0-20200316192019-270fa885ab52 h1:5C1zcLz7uQVWtt3GTBwbGuiAnN8tCGw0a/Ht12Ca2V8=
-github.com/cloudfoundry/packit v0.0.0-20200316192019-270fa885ab52/go.mod h1:L9r26GHPYpUReBWTpkU5BgyDuNVU01JSG4QsHybI0Bg=
+github.com/cloudfoundry/packit v0.0.0-20200324190026-a0ce524ee8f0 h1:XDZUlNGCeORBGGlamRGsFQ/E7woQYduQm4vSynSvJmo=
+github.com/cloudfoundry/packit v0.0.0-20200324190026-a0ce524ee8f0/go.mod h1:uDKHDsuoHGRdrF8WPU/l6wNnfW3RJrLZS3sWtTcbLIE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
