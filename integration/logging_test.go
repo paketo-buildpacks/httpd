@@ -66,7 +66,7 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 			"",
 			"  Configuring environment",
 			`    APP_ROOT    -> "/workspace"`,
-			`    SERVER_ROOT -> "/layers/org.cloudfoundry.httpd/httpd"`,
+			`    SERVER_ROOT -> "/layers/paketo-buildpacks_httpd/httpd"`,
 		))
 	})
 }
