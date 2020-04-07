@@ -7,7 +7,7 @@ require (
 	github.com/cloudfoundry/libcfbuildpack v1.91.23 // indirect
 	github.com/cloudfoundry/occam v0.0.0-20200323143411-1484bd3b2566
 	github.com/cloudfoundry/packit v0.0.0-20200324190026-a0ce524ee8f0
-	github.com/onsi/gomega v1.8.1
+	github.com/onsi/gomega v1.9.0
 	github.com/sclevine/spec v1.4.0
 	gopkg.in/yaml.v2 v2.2.8
 )
