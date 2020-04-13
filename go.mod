@@ -1,4 +1,4 @@
-module github.com/cloudfoundry/httpd-cnb
+module github.com/paketo-buildpacks/httpd
 
 go 1.12
 

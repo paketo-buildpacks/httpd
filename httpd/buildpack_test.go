@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cloudfoundry/httpd-cnb/httpd"
+	"github.com/paketo-buildpacks/httpd/httpd"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
