@@ -1,5 +1,9 @@
 # Apache HTTP Server Cloud Native Buildpack
 
+The HTTPD CNB provides the [Apache HTTP Server](https://httpd.apache.org) binary distribution.
+The buildpack installs the HTTPD binary distribution onto the `$PATH` which makes it available for
+subsequent buildpacks, and sets up the start command which signals httpd to start.
+
 ## Integration
 
 The Apache HTTPD CNB provides httpd as a dependency. Downstream buildpacks, like
