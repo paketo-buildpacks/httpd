@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/cloudfoundry/httpd-cnb/httpd"
+	"github.com/paketo-buildpacks/httpd/httpd"
 	"github.com/cloudfoundry/packit"
 	"github.com/cloudfoundry/packit/cargo"
 	"github.com/cloudfoundry/packit/postal"

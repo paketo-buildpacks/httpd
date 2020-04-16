@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/cloudfoundry/httpd-cnb/httpd"
+	"github.com/paketo-buildpacks/httpd/httpd"
 	"github.com/cloudfoundry/packit"
 	"github.com/sclevine/spec"
 
