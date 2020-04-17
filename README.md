@@ -47,3 +47,12 @@ $ ./scripts/package.sh
 ```
 
 This builds the buildpack's Go source using `GOOS=linux` by default. You can supply another value as the first argument to `package.sh`.
+
+## `buildpack.yml` Configurations
+
+```yaml
+httpd:
+  # this allows you to specify a version constaint for the httpd dependency
+  # any valid semver constaints (e.g. 2.* and 2.4.*) are also acceptable
+  version: "2.4.43"
+```
