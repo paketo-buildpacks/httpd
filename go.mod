@@ -9,5 +9,5 @@ require (
 	github.com/cloudfoundry/packit v0.0.7
 	github.com/onsi/gomega v1.10.0
 	github.com/sclevine/spec v1.4.0
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 )
