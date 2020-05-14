@@ -34,4 +34,3 @@ api = "0.2"
 
 [[stacks]]
   id = "io.buildpacks.stacks.bionic"
-  
