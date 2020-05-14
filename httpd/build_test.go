@@ -11,8 +11,8 @@ import (
 
 	"github.com/paketo-buildpacks/httpd/httpd"
 	"github.com/paketo-buildpacks/httpd/httpd/fakes"
-	"github.com/cloudfoundry/packit"
-	"github.com/cloudfoundry/packit/postal"
+	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/postal"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/paketo-buildpacks/httpd/httpd"
-	"github.com/cloudfoundry/packit"
+	"github.com/paketo-buildpacks/packit"
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"

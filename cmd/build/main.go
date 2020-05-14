@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/paketo-buildpacks/httpd/httpd"
-	"github.com/cloudfoundry/packit"
-	"github.com/cloudfoundry/packit/cargo"
-	"github.com/cloudfoundry/packit/postal"
+	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/cargo"
+	"github.com/paketo-buildpacks/packit/postal"
 )
 
 func main() {
