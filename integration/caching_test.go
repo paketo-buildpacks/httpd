@@ -4,11 +4,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cloudfoundry/occam"
+	"github.com/paketo-buildpacks/occam"
 	"github.com/sclevine/spec"
 
-	. "github.com/cloudfoundry/occam/matchers"
 	. "github.com/onsi/gomega"
+	. "github.com/paketo-buildpacks/occam/matchers"
 )
 
 func testCaching(t *testing.T, when spec.G, it spec.S) {
