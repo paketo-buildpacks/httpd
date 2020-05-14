@@ -22,12 +22,15 @@ api = "0.2"
   [[metadata.dependencies]]
     id = "httpd"
     name = "Apache HTTP Server"
-    sha256 = "59c67ff838c03104014df155ac6dd537dbce5827f2b9990ee0fb91f88a212f93"
+    sha256 = "e049a2fbeae9614ed1617e183b8f7e185706645299ad853699d6bd357aae1be5"
     source = "http://archive.apache.org/dist/httpd/httpd-2.4.43.tar.bz2"
     source_sha256 = "a497652ab3fc81318cdc2a203090a999150d86461acff97c1065dc910fe10f43"
-    stacks = ["org.cloudfoundry.stacks.cflinuxfs3"]
-    uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd_2.4.43_linux_x64_cflinuxfs3_59c67ff8.tgz"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://buildpacks.cloudfoundry.org/dependencies/httpd/httpd_2.4.43_linux_x64_cflinuxfs3_e049a2fb.tgz"
     version = "2.4.43"
 
 [[stacks]]
   id = "org.cloudfoundry.stacks.cflinuxfs3"
+
+[[stacks]]
+  id = "io.buildpacks.stacks.bionic"
