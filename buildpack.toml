@@ -4,6 +4,7 @@ api = "0.2"
   id = "paketo-buildpacks/httpd"
   name = "Apache HTTP Server Buildpack"
   version = "{{ .Version }}"
+  homepage = "https://github.com/paketo-buildpacks/httpd"
 
 [metadata]
   include_files = ["bin/build", "bin/detect", "buildpack.toml"]

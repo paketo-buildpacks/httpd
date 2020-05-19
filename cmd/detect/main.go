@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/paketo-buildpacks/httpd/httpd"
-	"github.com/cloudfoundry/packit"
+	"github.com/paketo-buildpacks/packit"
 )
 
 func main() {
