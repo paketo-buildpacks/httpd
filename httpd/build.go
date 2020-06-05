@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/paketo-buildpacks/packit/postal"
 )
 
@@ -15,7 +16,7 @@ type DependencyService interface {
 	Install(dependency postal.Dependency, cnbPath, layerPath string) error
 }
 
-func Build(dependencies DependencyService, clock Clock, logger LogEmitter) packit.BuildFunc {
+func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitter) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title(context.BuildpackInfo)
 
@@ -53,12 +54,13 @@ func Build(dependencies DependencyService, clock Clock, logger LogEmitter) packi
 			}
 
 			logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)
-			then := clock.Now()
-			err = dependencies.Install(dependency, context.CNBPath, httpdLayer.Path)
+			duration, err := clock.Measure(func() error {
+				return dependencies.Install(dependency, context.CNBPath, httpdLayer.Path)
+			})
 			if err != nil {
 				return packit.BuildResult{}, err
 			}
-			logger.Action("Completed in %s", time.Since(then).Round(time.Millisecond))
+			logger.Action("Completed in %s", duration.Round(time.Millisecond))
 			logger.Break()
 
 			httpdLayer.Metadata = map[string]interface{}{

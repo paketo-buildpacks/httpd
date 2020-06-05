@@ -12,6 +12,7 @@ import (
 	"github.com/paketo-buildpacks/httpd/httpd"
 	"github.com/paketo-buildpacks/httpd/httpd/fakes"
 	"github.com/paketo-buildpacks/packit"
+	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/paketo-buildpacks/packit/postal"
 	"github.com/sclevine/spec"
 
@@ -28,7 +29,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		timestamp  string
 
 		dependencyService *fakes.DependencyService
-		clock             httpd.Clock
+		clock             chronos.Clock
 
 		build packit.BuildFunc
 	)
@@ -56,7 +57,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		}
 
 		now := time.Now()
-		clock = httpd.NewClock(func() time.Time { return now })
+		clock = chronos.NewClock(func() time.Time { return now })
 		timestamp = now.Format(time.RFC3339Nano)
 
 		logEmitter := httpd.NewLogEmitter(ioutil.Discard)
