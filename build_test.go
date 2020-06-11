@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/paketo-buildpacks/httpd/httpd"
-	"github.com/paketo-buildpacks/httpd/httpd/fakes"
+	"github.com/paketo-buildpacks/httpd"
+	"github.com/paketo-buildpacks/httpd/fakes"
 	"github.com/paketo-buildpacks/packit"
 	"github.com/paketo-buildpacks/packit/chronos"
 	"github.com/paketo-buildpacks/packit/postal"
