@@ -62,8 +62,9 @@ func TestIntegration(t *testing.T) {
 
 	suite := spec.New("Integration", spec.Report(report.Terminal{}), spec.Parallel())
 	suite("Caching", testCaching)
-	suite("SimpleApp", testSimpleApp)
 	suite("Logging", testLogging)
+	suite("Offline", testOffline)
+	suite("SimpleApp", testSimpleApp)
 	suite.Run(t)
 }
 
