@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	"os"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -22,6 +23,7 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 		docker occam.Docker
 
 		name      string
+		source    string
 		image     occam.Image
 		container occam.Container
 	)
@@ -39,14 +41,19 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 		Expect(docker.Container.Remove.Execute(container.ID)).To(Succeed())
 		Expect(docker.Image.Remove.Execute(image.ID)).To(Succeed())
 		Expect(docker.Volume.Remove.Execute(occam.CacheVolumeNames(name))).To(Succeed())
+		Expect(os.RemoveAll(source)).To(Succeed())
 	})
 
 	it("serves up staticfile", func() {
 		var err error
+
+		source, err = occam.Source(filepath.Join("testdata", "simple_app"))
+		Expect(err).NotTo(HaveOccurred())
+
 		image, _, err = pack.Build.
-			WithBuildpacks(uri).
+			WithBuildpacks(httpdBuildpack).
 			WithNoPull().
-			Execute(name, filepath.Join("testdata", "simple_app"))
+			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
 		container, err = docker.Container.Run.Execute(image.ID)

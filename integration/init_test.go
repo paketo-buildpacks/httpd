@@ -2,46 +2,69 @@ package integration_test
 
 import (
 	"bytes"
-	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/cloudfoundry/dagger"
+	"github.com/BurntSushi/toml"
+	"github.com/paketo-buildpacks/occam"
 	"github.com/paketo-buildpacks/packit/pexec"
-
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 
 	. "github.com/onsi/gomega"
 )
 
-var uri string
+var (
+	httpdBuildpack        string
+	offlineHttpdBuildpack string
+	version               string
+	buildpackInfo struct {
+		Buildpack struct {
+			ID string
+			Name string
+		}
+	}
+)
 
 func TestIntegration(t *testing.T) {
 	var Expect = NewWithT(t).Expect
 
-	root, err := dagger.FindBPRoot()
+	root, err := filepath.Abs("./..")
 	Expect(err).ToNot(HaveOccurred())
 
-	uri, err = dagger.PackageBuildpack(root)
+	file, err := os.Open("../buildpack.toml")
+	Expect(err).NotTo(HaveOccurred())
+	defer file.Close()
+
+	_, err = toml.DecodeReader(file, &buildpackInfo)
 	Expect(err).NotTo(HaveOccurred())
 
-	// HACK: we need to fix dagger and the package.sh scripts so that this isn't required
-	uri = fmt.Sprintf("%s.tgz", uri)
+	buildpackStore := occam.NewBuildpackStore()
 
-	suite := spec.New("Integration", spec.Report(report.Terminal{}))
+	version, err = GetGitVersion()
+	Expect(err).NotTo(HaveOccurred())
+
+	httpdBuildpack, err = buildpackStore.Get.
+		WithVersion(version).
+		Execute(root)
+	Expect(err).NotTo(HaveOccurred())
+
+	offlineHttpdBuildpack, err = buildpackStore.Get.
+		WithOfflineDependencies().
+		WithVersion(version).
+		Execute(root)
+	Expect(err).NotTo(HaveOccurred())
+
+	SetDefaultEventuallyTimeout(5 * time.Second)
+
+	suite := spec.New("Integration", spec.Report(report.Terminal{}), spec.Parallel())
 	suite("Caching", testCaching)
 	suite("SimpleApp", testSimpleApp)
 	suite("Logging", testLogging)
-
-	defer AfterSuite(t)
 	suite.Run(t)
-}
-
-func AfterSuite(t *testing.T) {
-	var Expect = NewWithT(t).Expect
-
-	Expect(dagger.DeleteBuildpack(uri)).To(Succeed())
 }
 
 func GetGitVersion() (string, error) {
