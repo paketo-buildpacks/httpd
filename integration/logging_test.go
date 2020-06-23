@@ -1,8 +1,10 @@
 package integration_test
 
 import (
+	"os"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
@@ -19,7 +21,8 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 		pack   occam.Pack
 		docker occam.Docker
 
-		name  string
+		name    string
+		source  string
 		image occam.Image
 	)
 
@@ -35,6 +38,7 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 	it.After(func() {
 		Expect(docker.Image.Remove.Execute(image.ID)).To(Succeed())
 		Expect(docker.Volume.Remove.Execute(occam.CacheVolumeNames(name))).To(Succeed())
+		Expect(os.RemoveAll(source)).To(Succeed())
 	})
 
 	it("logs the build process", func() {
@@ -43,17 +47,20 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 			logs fmt.Stringer
 		)
 
+		source, err = occam.Source(filepath.Join("testdata", "buildpack_yaml"))
+		Expect(err).NotTo(HaveOccurred())
+
 		image, logs, err = pack.Build.
-			WithBuildpacks(uri).
+			WithBuildpacks(httpdBuildpack).
 			WithNoPull().
-			Execute(name, filepath.Join("testdata", "buildpack_yaml"))
+			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
 		buildpackVersion, err := GetGitVersion()
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(logs).To(ContainLines(
-			fmt.Sprintf("Apache HTTP Server Buildpack %s", buildpackVersion),
+			fmt.Sprintf("%s %s", buildpackInfo.Buildpack.Name, buildpackVersion),
 			"  Resolving Apache HTTP Server version",
 			"    Candidate version sources (in priority order):",
 			`      buildpack.yml -> "2.4.*"`,
@@ -66,7 +73,7 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 			"",
 			"  Configuring environment",
 			`    APP_ROOT    -> "/workspace"`,
-			`    SERVER_ROOT -> "/layers/paketo-buildpacks_httpd/httpd"`,
+			fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
 		))
 	})
 }
