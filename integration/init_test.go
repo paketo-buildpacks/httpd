@@ -29,13 +29,19 @@ func TestIntegration(t *testing.T) {
 	// HACK: we need to fix dagger and the package.sh scripts so that this isn't required
 	uri = fmt.Sprintf("%s.tgz", uri)
 
-	defer dagger.DeleteBuildpack(uri)
-
 	suite := spec.New("Integration", spec.Report(report.Terminal{}))
 	suite("Caching", testCaching)
 	suite("SimpleApp", testSimpleApp)
 	suite("Logging", testLogging)
+
+	defer AfterSuite(t)
 	suite.Run(t)
+}
+
+func AfterSuite(t *testing.T) {
+	var Expect = NewWithT(t).Expect
+
+	Expect(dagger.DeleteBuildpack(uri)).To(Succeed())
 }
 
 func GetGitVersion() (string, error) {
