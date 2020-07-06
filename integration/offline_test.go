@@ -8,13 +8,14 @@ import (
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
+
 	"github.com/sclevine/spec"
 
-	. "github.com/onsi/gomega"
 	. "github.com/paketo-buildpacks/occam/matchers"
+	. "github.com/onsi/gomega"
 )
 
-func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
+func testOffline(t *testing.T, when spec.G, it spec.S) {
 	var (
 		Expect     = NewWithT(t).Expect
 		Eventually = NewWithT(t).Eventually
@@ -29,7 +30,7 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		pack = occam.NewPack().WithVerbose()
+		pack = occam.NewPack().WithNoColor().WithVerbose()
 		docker = occam.NewDocker()
 
 		var err error
@@ -44,25 +45,28 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(source)).To(Succeed())
 	})
 
-	it("serves up staticfile", func() {
-		var err error
+	when("offline", func() {
+		it("serves up staticfile", func() {
+			var err error
 
-		source, err = occam.Source(filepath.Join("testdata", "simple_app"))
-		Expect(err).NotTo(HaveOccurred())
+			source, err = occam.Source(filepath.Join("testdata", "simple_app"))
+			Expect(err).NotTo(HaveOccurred())
 
-		image, _, err = pack.Build.
-			WithBuildpacks(httpdBuildpack).
-			WithNoPull().
-			Execute(name, source)
-		Expect(err).NotTo(HaveOccurred())
+			image, _, err = pack.Build.
+				WithNoPull().
+				WithBuildpacks(offlineHttpdBuildpack).
+				WithNetwork("none").
+				Execute(name, source)
+			Expect(err).NotTo(HaveOccurred())
 
-		container, err = docker.Container.Run.Execute(image.ID)
-		Expect(err).NotTo(HaveOccurred())
+			container, err = docker.Container.Run.Execute(image.ID)
+			Expect(err).NotTo(HaveOccurred())
 
-		Eventually(container).Should(BeAvailable())
+			Eventually(container).Should(BeAvailable())
 
-		response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort()))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(response.StatusCode).To(Equal(http.StatusOK))
+			response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort()))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(http.StatusOK))
+		})
 	})
 }
