@@ -2,7 +2,7 @@ api = "0.2"
 
 [buildpack]
   id = "paketo-buildpacks/httpd"
-  name = "Apache HTTP Server Buildpack"
+  name = "Paketo Apache HTTP Server Buildpack"
   homepage = "https://github.com/paketo-buildpacks/httpd"
 
 [metadata]
