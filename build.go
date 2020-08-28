@@ -32,9 +32,9 @@ func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitte
 
 		httpdLayer.Launch = entry.Metadata["launch"] == true
 
-		version := "*"
-		if entry.Version != "" {
-			version = entry.Version
+		version, ok := entry.Metadata["version"].(string)
+		if !ok {
+			version = "*"
 		}
 
 		dependency, err := dependencies.Resolve(filepath.Join(context.CNBPath, "buildpack.toml"), "httpd", version, context.Stack)
