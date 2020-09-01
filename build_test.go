@@ -142,9 +142,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				Plan: packit.BuildpackPlan{
 					Entries: []packit.BuildpackPlanEntry{
 						{
-							Name:     "httpd",
-							Version:  "2.4.*",
-							Metadata: map[string]interface{}{"launch": true},
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"version": "2.4.*",
+								"launch":  true},
 						},
 					},
 				},

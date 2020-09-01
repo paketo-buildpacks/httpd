@@ -11,6 +11,7 @@ import (
 const PlanDependencyHTTPD = "httpd"
 
 type BuildPlanMetadata struct {
+	Version       string `toml:"version,omitempty"`
 	VersionSource string `toml:"version-source,omitempty"`
 	Launch        bool   `toml:"launch"`
 }
@@ -42,8 +43,8 @@ func Detect() packit.DetectFunc {
 				return packit.DetectResult{}, errors.New("failed to detect: buildpack.yml specifies a version, but httpd.conf is missing")
 			}
 
-			requirements[0].Version = buildpack.HTTPD.Version
 			requirements[0].Metadata = BuildPlanMetadata{
+				Version:       buildpack.HTTPD.Version,
 				VersionSource: "buildpack.yml",
 				Launch:        true,
 			}

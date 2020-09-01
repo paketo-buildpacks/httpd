@@ -93,9 +93,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 						},
 						Requires: []packit.BuildPlanRequirement{
 							{
-								Name:    httpd.PlanDependencyHTTPD,
-								Version: "1.2.3",
+								Name: httpd.PlanDependencyHTTPD,
 								Metadata: httpd.BuildPlanMetadata{
+									Version:       "1.2.3",
 									Launch:        true,
 									VersionSource: "buildpack.yml",
 								},
