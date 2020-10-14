@@ -1,8 +1,8 @@
 package integration_test
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -21,9 +21,9 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 		pack   occam.Pack
 		docker occam.Docker
 
-		name    string
-		source  string
-		image occam.Image
+		name   string
+		source string
+		image  occam.Image
 	)
 
 	it.Before(func() {
@@ -52,7 +52,7 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 
 		image, logs, err = pack.Build.
 			WithBuildpacks(httpdBuildpack).
-			WithNoPull().
+			WithPullPolicy("never").
 			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
