@@ -1,9 +1,9 @@
 package integration_test
 
 import (
-	"os"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -52,7 +52,7 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 
 		image, _, err = pack.Build.
 			WithBuildpacks(httpdBuildpack).
-			WithNoPull().
+			WithPullPolicy("never").
 			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
