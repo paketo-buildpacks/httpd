@@ -4,6 +4,9 @@ The HTTPD CNB provides the [Apache HTTP Server](https://httpd.apache.org) binary
 The buildpack installs the HTTPD binary distribution onto the `$PATH` which makes it available for
 subsequent buildpacks, and sets up the start command which signals httpd to start.
 
+A usage example can be found in the
+[`samples` repository under the `httpd` directory](https://github.com/paketo-buildpacks/samples/tree/main/httpd).
+
 #### The HTTPD buildpack is compatible with the following builder(s):
 - [Paketo Full Builder](https://github.com/paketo-buildpacks/full-builder)
 
