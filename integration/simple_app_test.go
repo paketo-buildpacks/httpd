@@ -56,12 +56,16 @@ func testSimpleApp(t *testing.T, when spec.G, it spec.S) {
 			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
-		container, err = docker.Container.Run.Execute(image.ID)
+		container, err = docker.Container.Run.
+			WithEnv(map[string]string{"PORT": "8080"}).
+			WithPublish("8080").
+			WithPublishAll().
+			Execute(image.ID)
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(container).Should(BeAvailable())
 
-		response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort()))
+		response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort("8080")))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(response.StatusCode).To(Equal(http.StatusOK))
 	})

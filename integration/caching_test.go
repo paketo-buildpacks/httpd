@@ -68,7 +68,11 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 		Expect(firstImage.Buildpacks[0].Key).To(Equal(buildpackInfo.Buildpack.ID))
 		Expect(firstImage.Buildpacks[0].Layers).To(HaveKey("httpd"))
 
-		container, err := docker.Container.Run.Execute(firstImage.ID)
+		container, err := docker.Container.Run.
+			WithEnv(map[string]string{"PORT": "8080"}).
+			WithPublish("8080").
+			WithPublishAll().
+			Execute(firstImage.ID)
 		Expect(err).NotTo(HaveOccurred())
 
 		containerIDs[container.ID] = struct{}{}
@@ -84,7 +88,11 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 		Expect(secondImage.Buildpacks[0].Key).To(Equal(buildpackInfo.Buildpack.ID))
 		Expect(secondImage.Buildpacks[0].Layers).To(HaveKey("httpd"))
 
-		container, err = docker.Container.Run.Execute(secondImage.ID)
+		container, err = docker.Container.Run.
+			WithEnv(map[string]string{"PORT": "8080"}).
+			WithPublish("8080").
+			WithPublishAll().
+			Execute(secondImage.ID)
 		Expect(err).NotTo(HaveOccurred())
 
 		containerIDs[container.ID] = struct{}{}
