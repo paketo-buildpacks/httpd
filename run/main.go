@@ -14,9 +14,10 @@ func main() {
 	transport := cargo.NewTransport()
 	dependencyService := postal.NewService(transport)
 	logEmitter := httpd.NewLogEmitter(os.Stdout)
+	versionParser := httpd.NewVersionParser()
 
 	packit.Run(
-		httpd.Detect(),
+		httpd.Detect(versionParser),
 		httpd.Build(
 			dependencyService,
 			chronos.DefaultClock,
