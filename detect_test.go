@@ -1,12 +1,14 @@
 package httpd_test
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/paketo-buildpacks/httpd"
+	"github.com/paketo-buildpacks/httpd/fakes"
 	"github.com/paketo-buildpacks/packit"
 	"github.com/sclevine/spec"
 
@@ -17,6 +19,8 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
+		parser *fakes.Parser
+
 		workingDir string
 		detect     packit.DetectFunc
 	)
@@ -26,7 +30,11 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = ioutil.TempDir("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
-		detect = httpd.Detect()
+		parser = &fakes.Parser{}
+		parser.ParseVersionCall.Returns.Version = "some-version"
+		parser.ParseVersionCall.Returns.VersionSource = "some-version-source"
+
+		detect = httpd.Detect(parser)
 	})
 
 	it.After(func() {
@@ -45,6 +53,8 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 				},
 			},
 		}))
+
+		Expect(parser.ParseVersionCall.CallCount).To(Equal(0))
 	})
 
 	context("when there is an httpd.conf file in the workspace", func() {
@@ -67,68 +77,31 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 						{
 							Name: httpd.PlanDependencyHTTPD,
 							Metadata: httpd.BuildPlanMetadata{
-								Launch: true,
+								Version:       "some-version",
+								VersionSource: "some-version-source",
+								Launch:        true,
 							},
 						},
 					},
 				},
 			}))
-		})
 
-		context("when the buildpack.yml specifies a version to install", func() {
-			it.Before(func() {
-				err := ioutil.WriteFile(filepath.Join(workingDir, "buildpack.yml"), []byte(`{"httpd": {"version": "1.2.3"}}`), 0644)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			it("returns a DetectResult that provides and required httpd with that version", func() {
-				result, err := detect(packit.DetectContext{
-					WorkingDir: workingDir,
-				})
-				Expect(err).NotTo(HaveOccurred())
-				Expect(result).To(Equal(packit.DetectResult{
-					Plan: packit.BuildPlan{
-						Provides: []packit.BuildPlanProvision{
-							{Name: httpd.PlanDependencyHTTPD},
-						},
-						Requires: []packit.BuildPlanRequirement{
-							{
-								Name: httpd.PlanDependencyHTTPD,
-								Metadata: httpd.BuildPlanMetadata{
-									Version:       "1.2.3",
-									Launch:        true,
-									VersionSource: "buildpack.yml",
-								},
-							},
-						},
-					},
-				}))
-			})
+			Expect(parser.ParseVersionCall.Receives.Path).To(Equal(filepath.Join(workingDir, "buildpack.yml")))
 		})
 	})
 
 	context("failure cases", func() {
-		context("when the buildpack.yml is malformed", func() {
+		context("when ParseVersion fails", func() {
 			it.Before(func() {
-				err := ioutil.WriteFile(filepath.Join(workingDir, "buildpack.yml"), []byte("%%%"), 0644)
+				_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
 				Expect(err).NotTo(HaveOccurred())
+
+				parser.ParseVersionCall.Returns.Err = errors.New("failed to parse version")
 			})
 
 			it("returns an error", func() {
 				_, err := detect(packit.DetectContext{WorkingDir: workingDir})
-				Expect(err).To(MatchError(ContainSubstring("failed to parse buildpack.yml")))
-			})
-		})
-
-		context("when there is a buildpack.yml without an httpd.conf", func() {
-			it.Before(func() {
-				err := ioutil.WriteFile(filepath.Join(workingDir, "buildpack.yml"), []byte(`{"httpd": {"version": "1.2.3"}}`), 0644)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			it("returns an error", func() {
-				_, err := detect(packit.DetectContext{WorkingDir: workingDir})
-				Expect(err).To(MatchError("failed to detect: buildpack.yml specifies a version, but httpd.conf is missing"))
+				Expect(err).To(MatchError("failed to parse version"))
 			})
 		})
 	})
