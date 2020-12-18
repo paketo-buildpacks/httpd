@@ -106,10 +106,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					},
 				},
 			},
-			Processes: []packit.Process{
-				{
-					Type:    "web",
-					Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+			Launch: packit.LaunchMetadata{
+				Processes: []packit.Process{
+					{
+						Type:    "web",
+						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+					},
 				},
 			},
 		}))
@@ -170,10 +172,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						},
 					},
 				},
-				Processes: []packit.Process{
-					{
-						Type:    "web",
-						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+				Launch: packit.LaunchMetadata{
+					Processes: []packit.Process{
+						{
+							Type:    "web",
+							Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+						},
 					},
 				},
 			}))
