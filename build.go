@@ -25,12 +25,10 @@ func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitte
 
 		entry := context.Plan.Entries[0]
 
-		httpdLayer, err := context.Layers.Get("httpd", packit.CacheLayer)
+		httpdLayer, err := context.Layers.Get("httpd")
 		if err != nil {
 			return packit.BuildResult{}, err
 		}
-
-		httpdLayer.Launch = entry.Metadata["launch"] == true
 
 		version, ok := entry.Metadata["version"].(string)
 		if !ok {
@@ -48,10 +46,12 @@ func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitte
 			logger.Break()
 			logger.Process("Executing build process")
 
-			err = httpdLayer.Reset()
+			httpdLayer, err = httpdLayer.Reset()
 			if err != nil {
 				return packit.BuildResult{}, err
 			}
+			httpdLayer.Cache = true
+			httpdLayer.Launch = entry.Metadata["launch"] == true
 
 			logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)
 			duration, err := clock.Measure(func() error {
@@ -77,10 +77,12 @@ func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitte
 
 		return packit.BuildResult{
 			Layers: []packit.Layer{httpdLayer},
-			Processes: []packit.Process{
-				{
-					Type:    "web",
-					Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
+			Launch: packit.LaunchMetadata{
+				Processes: []packit.Process{
+					{
+						Type:    "web",
+						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
+					},
 				},
 			},
 		}, nil
