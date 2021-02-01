@@ -50,7 +50,6 @@ func Build(dependencies DependencyService, clock chronos.Clock, logger LogEmitte
 			if err != nil {
 				return packit.BuildResult{}, err
 			}
-			httpdLayer.Cache = true
 			httpdLayer.Launch = entry.Metadata["launch"] == true
 
 			logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)

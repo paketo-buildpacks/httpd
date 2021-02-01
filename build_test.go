@@ -93,7 +93,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					Name:      "httpd",
 					Path:      filepath.Join(layersDir, "httpd"),
 					Launch:    true,
-					Cache:     true,
 					SharedEnv: packit.Environment{},
 					BuildEnv:  packit.Environment{},
 					LaunchEnv: packit.Environment{
@@ -159,7 +158,6 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						Name:      "httpd",
 						Path:      filepath.Join(layersDir, "httpd"),
 						Launch:    true,
-						Cache:     true,
 						SharedEnv: packit.Environment{},
 						BuildEnv:  packit.Environment{},
 						LaunchEnv: packit.Environment{
