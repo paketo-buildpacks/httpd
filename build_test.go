@@ -99,6 +99,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						"APP_ROOT.override":    workingDir,
 						"SERVER_ROOT.override": filepath.Join(layersDir, "httpd"),
 					},
+					ProcessLaunchEnv: map[string]packit.Environment{},
 					Metadata: map[string]interface{}{
 						"built_at":  timestamp,
 						"cache_sha": "some-sha",
@@ -164,6 +165,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 							"APP_ROOT.override":    workingDir,
 							"SERVER_ROOT.override": filepath.Join(layersDir, "httpd"),
 						},
+						ProcessLaunchEnv: map[string]packit.Environment{},
 						Metadata: map[string]interface{}{
 							"built_at":  timestamp,
 							"cache_sha": "some-sha",
