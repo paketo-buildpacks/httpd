@@ -67,7 +67,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			SourceSHA256: "some-source-sha",
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
-			Version:      "2.4.41",
+			Version:      "some-env-var-version",
 		}
 
 		now := time.Now()
@@ -102,7 +102,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						Name: "httpd",
 						Metadata: map[string]interface{}{
 							"version-source": "BP_HTTPD_VERSION",
-							"version":        "some-entry-version",
+							"version":        "some-env-var-version",
 							"launch":         true,
 						},
 					},
@@ -151,13 +151,33 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			SourceSHA256: "some-source-sha",
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
-			Version:      "2.4.41",
+			Version:      "some-env-var-version",
 		}))
 		Expect(dependencyService.InstallCall.Receives.CnbPath).To(Equal(cnbPath))
 		Expect(dependencyService.InstallCall.Receives.LayerPath).To(Equal(filepath.Join(layersDir, "httpd")))
 	})
 
 	context("when the entry contains a version constraint", func() {
+		it.Before(func() {
+			entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+				Name: "http",
+				Metadata: map[string]interface{}{
+					"version-source": "BP_HTTPD_VERSION",
+					"version":        "2.4.*",
+					"launch":         true,
+				},
+			}
+
+			dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
+				ID:           "httpd",
+				SHA256:       "some-sha",
+				Source:       "some-source",
+				SourceSHA256: "some-source-sha",
+				Stacks:       []string{"some-stack"},
+				URI:          "some-uri",
+				Version:      "2.4.41",
+			}
+		})
 		it("builds httpd with that version", func() {
 			result, err := build(packit.BuildContext{
 				BuildpackInfo: packit.BuildpackInfo{
@@ -174,7 +194,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 							Name: "httpd",
 							Metadata: map[string]interface{}{
 								"version-source": "BP_HTTPD_VERSION",
-								"version":        "some-entry-version",
+								"version":        "2.4.*",
 								"launch":         true,
 							},
 						},
@@ -213,7 +233,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(dependencyService.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbPath, "buildpack.toml")))
 			Expect(dependencyService.ResolveCall.Receives.Name).To(Equal("httpd"))
-			Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("some-env-var-version"))
+			Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("2.4.*"))
 			Expect(dependencyService.ResolveCall.Receives.Stack).To(Equal("some-stack"))
 
 			Expect(dependencyService.InstallCall.Receives.Dependency).To(Equal(postal.Dependency{
