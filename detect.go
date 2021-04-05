@@ -39,20 +39,34 @@ func Detect(parser Parser) packit.DetectFunc {
 			return packit.DetectResult{}, err
 		}
 
+		var requirements []packit.BuildPlanRequirement
+
+		if version, ok := os.LookupEnv("BP_HTTPD_VERSION"); ok {
+			requirements = append(requirements, packit.BuildPlanRequirement{
+				Name: PlanDependencyHTTPD,
+				Metadata: BuildPlanMetadata{
+					Version:       version,
+					VersionSource: "BP_HTTPD_VERSION",
+					Launch:        true,
+				},
+			})
+		}
+
 		version, versionSource, err := parser.ParseVersion(filepath.Join(context.WorkingDir, "buildpack.yml"))
 		if err != nil {
 			return packit.DetectResult{}, err
 		}
 
-		plan.Plan.Requires = []packit.BuildPlanRequirement{
-			{
+		if version != "" {
+			requirements = append(requirements, packit.BuildPlanRequirement{
 				Name: PlanDependencyHTTPD,
 				Metadata: BuildPlanMetadata{
 					Version:       version,
 					VersionSource: versionSource,
 					Launch:        true,
 				},
-			},
+			})
+			plan.Plan.Requires = requirements
 		}
 
 		return plan, nil
