@@ -17,7 +17,6 @@ import (
 var (
 	httpdBuildpack        string
 	offlineHttpdBuildpack string
-	version               string
 	buildpackInfo         struct {
 		Buildpack struct {
 			ID   string
