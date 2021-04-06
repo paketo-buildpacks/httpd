@@ -49,13 +49,27 @@ file that looks like the following:
 To package this buildpack for consumption:
 
 ```
-$ ./scripts/package.sh
+$ ./scripts/package.sh -v <version>
 ```
 
-This builds the buildpack's Go source using `GOOS=linux` by default. You can supply another value as the first argument to `package.sh`.
+## Configurations
 
-## `buildpack.yml` Configurations
+Specifying the HTTP Server version through `buildpack.yml` configuration
+will be deprecated in Apache HTTP Server Buildpack v1.0.0.
 
+To migrate from using `buildpack.yml` please set the following environment
+variables at build time either directly (ex. `pack build my-app --env
+BP_ENVIRONMENT_VARIABLE=some-value`) or through a [`project.toml`
+file](https://github.com/buildpacks/spec/blob/main/extensions/project-descriptor.md)
+
+### `BP_HTTPD_VERSION`
+The `BP_HTTPD_VERSION` variable allows you to specify the version of Apache HTTP Server that is installed.
+
+```shell
+BP_HTTPD_VERSION=2.4.43
+```
+
+This will replace the following structure in `buildpack.yml`:
 ```yaml
 httpd:
   # this allows you to specify a version constraint for the httpd dependency

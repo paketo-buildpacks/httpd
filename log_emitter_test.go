@@ -34,38 +34,6 @@ func testLogEmitter(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
-	context("Candidates", func() {
-		it("logs the candidate entries", func() {
-			emitter.Candidates([]packit.BuildpackPlanEntry{
-				{
-					Metadata: map[string]interface{}{
-						"version":        "some-version",
-						"version-source": "some-source",
-					},
-				},
-				{
-					Metadata: map[string]interface{}{
-						"version": "other-version",
-					},
-				},
-			})
-			Expect(buffer.String()).To(Equal(`    Candidate version sources (in priority order):
-      some-source -> "some-version"
-      <unknown>   -> "other-version"
-
-`))
-		})
-	})
-
-	context("SelectedEntry", func() {
-		it("logs the selected entry", func() {
-			emitter.SelectedDependency(packit.BuildpackPlanEntry{
-				Metadata: map[string]interface{}{"version-source": "some-source"},
-			}, "some-version")
-			Expect(buffer.String()).To(Equal("    Selected Apache HTTP Server version (using some-source): some-version\n"))
-		})
-	})
-
 	context("Environment", func() {
 		it("logs the environment variables", func() {
 			emitter.Environment(packit.Environment{

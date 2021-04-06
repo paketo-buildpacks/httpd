@@ -90,6 +90,52 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("BP_HTTPD_VERSION is set", func() {
+		it.Before(func() {
+			_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(os.Setenv("BP_HTTPD_VERSION", "env-var-version")).To(Succeed())
+		})
+
+		it.After(func() {
+			err := os.Remove(filepath.Join(workingDir, "httpd.conf"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(os.Unsetenv("BP_HTTPD_VERSION")).To(Succeed())
+		})
+
+		it("returns a DetectResult that required specified version of httpd", func() {
+			result, err := detect(packit.DetectContext{
+				WorkingDir: workingDir,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(packit.DetectResult{
+				Plan: packit.BuildPlan{
+					Provides: []packit.BuildPlanProvision{
+						{Name: httpd.PlanDependencyHTTPD},
+					},
+					Requires: []packit.BuildPlanRequirement{
+						{
+							Name: httpd.PlanDependencyHTTPD,
+							Metadata: httpd.BuildPlanMetadata{
+								Version:       "env-var-version",
+								VersionSource: "BP_HTTPD_VERSION",
+								Launch:        true,
+							},
+						},
+						{
+							Name: httpd.PlanDependencyHTTPD,
+							Metadata: httpd.BuildPlanMetadata{
+								Version:       "some-version",
+								VersionSource: "some-version-source",
+								Launch:        true,
+							},
+						},
+					},
+				},
+			}))
+		})
+	})
+
 	context("failure cases", func() {
 		context("when ParseVersion fails", func() {
 			it.Before(func() {

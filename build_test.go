@@ -1,6 +1,7 @@
 package httpd_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -28,8 +29,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		cnbPath    string
 		timestamp  string
 
+		entryResolver     *fakes.EntryResolver
 		dependencyService *fakes.DependencyService
 		clock             chronos.Clock
+		buffer            *bytes.Buffer
 
 		build packit.BuildFunc
 	)
@@ -45,6 +48,17 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		cnbPath, err = ioutil.TempDir("", "cnb-path")
 		Expect(err).NotTo(HaveOccurred())
 
+		entryResolver = &fakes.EntryResolver{}
+		entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+			Name: "http",
+			Metadata: map[string]interface{}{
+				"version-source": "BP_HTTPD_VERSION",
+				"version":        "some-env-var-version",
+				"launch":         true,
+			},
+		}
+		entryResolver.MergeLayerTypesCall.Returns.Launch = true
+
 		dependencyService = &fakes.DependencyService{}
 		dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
 			ID:           "httpd",
@@ -53,16 +67,17 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			SourceSHA256: "some-source-sha",
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
-			Version:      "2.4.41",
+			Version:      "some-env-var-version",
 		}
 
 		now := time.Now()
 		clock = chronos.NewClock(func() time.Time { return now })
 		timestamp = now.Format(time.RFC3339Nano)
 
-		logEmitter := httpd.NewLogEmitter(ioutil.Discard)
+		buffer = bytes.NewBuffer(nil)
+		logEmitter := httpd.NewLogEmitter(buffer)
 
-		build = httpd.Build(dependencyService, clock, logEmitter)
+		build = httpd.Build(entryResolver, dependencyService, clock, logEmitter)
 	})
 
 	it.After(func() {
@@ -73,6 +88,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 	it("builds httpd", func() {
 		result, err := build(packit.BuildContext{
+			BuildpackInfo: packit.BuildpackInfo{
+				Name:    "Some Buildpack",
+				Version: "1.2.3",
+			},
 			WorkingDir: workingDir,
 			Layers:     packit.Layers{Path: layersDir},
 			CNBPath:    cnbPath,
@@ -80,8 +99,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			Plan: packit.BuildpackPlan{
 				Entries: []packit.BuildpackPlanEntry{
 					{
-						Name:     "httpd",
-						Metadata: map[string]interface{}{"launch": true},
+						Name: "httpd",
+						Metadata: map[string]interface{}{
+							"version-source": "BP_HTTPD_VERSION",
+							"version":        "some-env-var-version",
+							"launch":         true,
+						},
 					},
 				},
 			},
@@ -118,7 +141,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(dependencyService.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbPath, "buildpack.toml")))
 		Expect(dependencyService.ResolveCall.Receives.Name).To(Equal("httpd"))
-		Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("*"))
+		Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("some-env-var-version"))
 		Expect(dependencyService.ResolveCall.Receives.Stack).To(Equal("some-stack"))
 
 		Expect(dependencyService.InstallCall.Receives.Dependency).To(Equal(postal.Dependency{
@@ -128,15 +151,39 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			SourceSHA256: "some-source-sha",
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
-			Version:      "2.4.41",
+			Version:      "some-env-var-version",
 		}))
 		Expect(dependencyService.InstallCall.Receives.CnbPath).To(Equal(cnbPath))
 		Expect(dependencyService.InstallCall.Receives.LayerPath).To(Equal(filepath.Join(layersDir, "httpd")))
 	})
 
 	context("when the entry contains a version constraint", func() {
+		it.Before(func() {
+			entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+				Name: "http",
+				Metadata: map[string]interface{}{
+					"version-source": "BP_HTTPD_VERSION",
+					"version":        "2.4.*",
+					"launch":         true,
+				},
+			}
+
+			dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
+				ID:           "httpd",
+				SHA256:       "some-sha",
+				Source:       "some-source",
+				SourceSHA256: "some-source-sha",
+				Stacks:       []string{"some-stack"},
+				URI:          "some-uri",
+				Version:      "2.4.41",
+			}
+		})
 		it("builds httpd with that version", func() {
 			result, err := build(packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
 				WorkingDir: workingDir,
 				Layers:     packit.Layers{Path: layersDir},
 				CNBPath:    cnbPath,
@@ -146,8 +193,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						{
 							Name: "httpd",
 							Metadata: map[string]interface{}{
-								"version": "2.4.*",
-								"launch":  true},
+								"version-source": "BP_HTTPD_VERSION",
+								"version":        "2.4.*",
+								"launch":         true,
+							},
 						},
 					},
 				},
@@ -201,6 +250,53 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("when the version source is buildpack.yml", func() {
+		it.Before(func() {
+			entryResolver.ResolveCall.Returns.BuildpackPlanEntry = packit.BuildpackPlanEntry{
+				Name: "http",
+				Metadata: map[string]interface{}{
+					"version-source": "buildpack.yml",
+					"version":        "some-bp-yml-version",
+					"launch":         true,
+				},
+			}
+		})
+
+		it("builds httpd with that version", func() {
+			_, err := build(packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
+				WorkingDir: workingDir,
+				Layers:     packit.Layers{Path: layersDir},
+				CNBPath:    cnbPath,
+				Stack:      "some-stack",
+				Plan: packit.BuildpackPlan{
+					Entries: []packit.BuildpackPlanEntry{
+						{
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"version-source": "buildpack.yml",
+								"version":        "some-bp-yml-version",
+								"launch":         true,
+							},
+						},
+					},
+				},
+			})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dependencyService.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbPath, "buildpack.toml")))
+			Expect(dependencyService.ResolveCall.Receives.Name).To(Equal("httpd"))
+			Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("some-bp-yml-version"))
+			Expect(dependencyService.ResolveCall.Receives.Stack).To(Equal("some-stack"))
+
+			Expect(buffer.String()).To(ContainSubstring("WARNING: Setting the server version through buildpack.yml will be deprecated soon in Apache HTTP Server Buildpack v2.0.0"))
+			Expect(buffer.String()).To(ContainSubstring("Please specify the version through the $BP_HTTPD_VERSION environment variable instead. See docs for more information."))
+		})
+	})
+
 	context("failure cases", func() {
 		context("when the httpd layer cannot be retrieved", func() {
 			it.Before(func() {
@@ -209,6 +305,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "1.2.3",
+					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,
@@ -230,6 +330,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "1.2.3",
+					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,
@@ -251,6 +355,10 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "1.2.3",
+					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,

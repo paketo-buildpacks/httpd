@@ -14,7 +14,7 @@ import (
 	. "github.com/paketo-buildpacks/occam/matchers"
 )
 
-func testLogging(t *testing.T, when spec.G, it spec.S) {
+func testLogging(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
@@ -27,7 +27,7 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		pack = occam.NewPack().WithVerbose().WithNoColor()
+		pack = occam.NewPack().WithNoColor()
 		docker = occam.NewDocker()
 
 		var err error
@@ -56,16 +56,16 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
-		buildpackVersion, err := GetGitVersion()
-		Expect(err).ToNot(HaveOccurred())
-
 		Expect(logs).To(ContainLines(
-			fmt.Sprintf("%s %s", buildpackInfo.Buildpack.Name, buildpackVersion),
+			MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
 			"  Resolving Apache HTTP Server version",
 			"    Candidate version sources (in priority order):",
 			`      buildpack.yml -> "2.4.*"`,
 			"",
 			MatchRegexp(`    Selected Apache HTTP Server version \(using buildpack\.yml\): 2\.4\.\d+`),
+			"",
+			"    WARNING: Setting the server version through buildpack.yml will be deprecated soon in Apache HTTP Server Buildpack v2.0.0.",
+			"    Please specify the version through the $BP_HTTPD_VERSION environment variable instead. See docs for more information.",
 			"",
 			"  Executing build process",
 			MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
@@ -75,5 +75,46 @@ func testLogging(t *testing.T, when spec.G, it spec.S) {
 			`    APP_ROOT    -> "/workspace"`,
 			fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
 		))
+	})
+
+	context("the app is built with BP_HTTPD_VERSION set", func() {
+		it("builds the app with the specified version", func() {
+			var (
+				err  error
+				logs fmt.Stringer
+			)
+
+			source, err = occam.Source(filepath.Join("testdata", "buildpack_yaml"))
+			Expect(err).NotTo(HaveOccurred())
+
+			image, logs, err = pack.Build.
+				WithBuildpacks(httpdBuildpack).
+				WithPullPolicy("never").
+				WithEnv(map[string]string{
+					"BP_HTTPD_VERSION": "2.4.43",
+				}).
+				Execute(name, source)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(logs).To(ContainLines(
+				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
+				"  Resolving Apache HTTP Server version",
+				"    Candidate version sources (in priority order):",
+				`      BP_HTTPD_VERSION -> "2.4.43"`,
+				`      buildpack.yml    -> "2.4.*"`,
+				"",
+				MatchRegexp(`    Selected Apache HTTP Server version \(using BP_HTTPD_VERSION\): 2\.4\.\d+`),
+				"",
+				"  Executing build process",
+				MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
+				MatchRegexp(`      Completed in (\d+\.\d+|\d{3})`),
+				"",
+				"  Configuring environment",
+				`    APP_ROOT    -> "/workspace"`,
+				fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
+			))
+
+		})
+
 	})
 }
