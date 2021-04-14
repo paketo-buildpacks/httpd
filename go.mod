@@ -7,8 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/onsi/gomega v1.11.0
 	github.com/paketo-buildpacks/occam v0.1.2
-	github.com/paketo-buildpacks/packit v0.10.0
+	github.com/paketo-buildpacks/packit v0.10.2
 	github.com/sclevine/spec v1.4.0
-	golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
