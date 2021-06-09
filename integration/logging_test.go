@@ -87,11 +87,12 @@ func testLogging(t *testing.T, context spec.G, it spec.S) {
 			source, err = occam.Source(filepath.Join("testdata", "buildpack_yaml"))
 			Expect(err).NotTo(HaveOccurred())
 
+			lowestVersion := buildpackInfo.Metadata.Dependencies[0].Version
 			image, logs, err = pack.Build.
 				WithBuildpacks(httpdBuildpack).
 				WithPullPolicy("never").
 				WithEnv(map[string]string{
-					"BP_HTTPD_VERSION": "2.4.43",
+					"BP_HTTPD_VERSION": lowestVersion,
 				}).
 				Execute(name, source)
 			Expect(err).NotTo(HaveOccurred())
@@ -100,10 +101,10 @@ func testLogging(t *testing.T, context spec.G, it spec.S) {
 				MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
 				"  Resolving Apache HTTP Server version",
 				"    Candidate version sources (in priority order):",
-				`      BP_HTTPD_VERSION -> "2.4.43"`,
+				fmt.Sprintf(`      BP_HTTPD_VERSION -> "%s"`, lowestVersion),
 				`      buildpack.yml    -> "2.4.*"`,
 				"",
-				MatchRegexp(`    Selected Apache HTTP Server version \(using BP_HTTPD_VERSION\): 2\.4\.\d+`),
+				MatchRegexp(fmt.Sprintf(`    Selected Apache HTTP Server version \(using BP_HTTPD_VERSION\): %s`, lowestVersion)),
 				"",
 				"  Executing build process",
 				MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
