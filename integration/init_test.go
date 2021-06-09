@@ -22,6 +22,11 @@ var (
 			ID   string
 			Name string
 		}
+		Metadata struct {
+			Dependencies []struct {
+				Version string
+			}
+		}
 	}
 )
 
