@@ -76,3 +76,10 @@ httpd:
   # any valid semver constraints (e.g. 2.* and 2.4.*) are also acceptable
   version: "2.4.43"
 ```
+
+## Stack support
+
+The HTTPD buildpack requires that you use the Paketo [Full
+builder](https://paketo.io/docs/builders/#full) to build applications. The
+buildpack does not run on the Base builder because it requires `libexpat1`
+that's not present on the Base stack.
