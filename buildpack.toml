@@ -1,9 +1,9 @@
 api = "0.4"
 
 [buildpack]
+  homepage = "https://github.com/paketo-buildpacks/httpd"
   id = "paketo-buildpacks/httpd"
   name = "Paketo Apache HTTP Server Buildpack"
-  homepage = "https://github.com/paketo-buildpacks/httpd"
 
 [metadata]
   include-files = ["bin/build", "bin/detect", "bin/run", "buildpack.toml"]
