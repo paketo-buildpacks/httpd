@@ -69,6 +69,19 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			URI:          "some-uri",
 			Version:      "some-env-var-version",
 		}
+		dependencyService.GenerateBillOfMaterialsCall.Returns.BOMEntrySlice = []packit.BOMEntry{
+			{
+				Name: "httpd",
+				Metadata: packit.BOMMetadata{
+					Version: "httpd-dependency-version",
+					Checksum: packit.BOMChecksum{
+						Algorithm: packit.SHA256,
+						Hash:      "httpd-dependency-sha",
+					},
+					URI: "httpd-dependency-uri",
+				},
+			},
+		}
 
 		now := time.Now()
 		clock = chronos.NewClock(func() time.Time { return now })
@@ -130,6 +143,19 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				},
 			},
 			Launch: packit.LaunchMetadata{
+				BOM: []packit.BOMEntry{
+					{
+						Name: "httpd",
+						Metadata: packit.BOMMetadata{
+							Version: "httpd-dependency-version",
+							Checksum: packit.BOMChecksum{
+								Algorithm: packit.SHA256,
+								Hash:      "httpd-dependency-sha",
+							},
+							URI: "httpd-dependency-uri",
+						},
+					},
+				},
 				Processes: []packit.Process{
 					{
 						Type:    "web",
@@ -178,6 +204,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				Version:      "2.4.41",
 			}
 		})
+
 		it("builds httpd with that version", func() {
 			result, err := build(packit.BuildContext{
 				BuildpackInfo: packit.BuildpackInfo{
@@ -222,6 +249,19 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					},
 				},
 				Launch: packit.LaunchMetadata{
+					BOM: []packit.BOMEntry{
+						{
+							Name: "httpd",
+							Metadata: packit.BOMMetadata{
+								Version: "httpd-dependency-version",
+								Checksum: packit.BOMChecksum{
+									Algorithm: packit.SHA256,
+									Hash:      "httpd-dependency-sha",
+								},
+								URI: "httpd-dependency-uri",
+							},
+						},
+					},
 					Processes: []packit.Process{
 						{
 							Type:    "web",
