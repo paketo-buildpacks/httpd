@@ -22,6 +22,7 @@ type EntryResolver interface {
 type DependencyService interface {
 	Resolve(path, name, version, stack string) (postal.Dependency, error)
 	Install(dependency postal.Dependency, cnbPath, layerPath string) error
+	GenerateBillOfMaterials(dependencies ...postal.Dependency) []packit.BOMEntry
 }
 
 func Build(entries EntryResolver, dependencies DependencyService, clock chronos.Clock, logger LogEmitter) packit.BuildFunc {
@@ -61,6 +62,14 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 			logger.Break()
 		}
 
+		launch, _ := entries.MergeLayerTypes("httpd", context.Plan.Entries)
+		bom := dependencies.GenerateBillOfMaterials(dependency)
+
+		var launchMetadata packit.LaunchMetadata
+		if launch {
+			launchMetadata.BOM = bom
+		}
+
 		if sha, ok := httpdLayer.Metadata["cache_sha"].(string); !ok || sha != dependency.SHA256 {
 			logger.Process("Executing build process")
 
@@ -68,7 +77,7 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 			if err != nil {
 				return packit.BuildResult{}, err
 			}
-			httpdLayer.Launch, _ = entries.MergeLayerTypes("httpd", context.Plan.Entries)
+			httpdLayer.Launch = launch
 
 			logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)
 			duration, err := clock.Measure(func() error {
@@ -92,16 +101,16 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 			logger.Environment(httpdLayer.LaunchEnv)
 		}
 
+		launchMetadata.Processes = []packit.Process{
+			{
+				Type:    "web",
+				Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
+			},
+		}
+
 		return packit.BuildResult{
 			Layers: []packit.Layer{httpdLayer},
-			Launch: packit.LaunchMetadata{
-				Processes: []packit.Process{
-					{
-						Type:    "web",
-						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
-					},
-				},
-			},
+			Launch: launchMetadata,
 		}, nil
 	}
 }
