@@ -69,6 +69,7 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 		if launch {
 			launchMetadata.BOM = bom
 		}
+		httpdLayer.Launch = launch
 
 		if sha, ok := httpdLayer.Metadata["cache_sha"].(string); !ok || sha != dependency.SHA256 {
 			logger.Process("Executing build process")
@@ -105,6 +106,7 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 			{
 				Type:    "web",
 				Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
+				Default: true,
 			},
 		}
 
