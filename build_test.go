@@ -160,6 +160,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					{
 						Type:    "web",
 						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+						Default: true,
 					},
 				},
 			},
@@ -266,6 +267,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 						{
 							Type:    "web",
 							Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+							Default: true,
 						},
 					},
 				},
@@ -334,6 +336,82 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(buffer.String()).To(ContainSubstring("WARNING: Setting the server version through buildpack.yml will be deprecated soon in Apache HTTP Server Buildpack v2.0.0"))
 			Expect(buffer.String()).To(ContainSubstring("Please specify the version through the $BP_HTTPD_VERSION environment variable instead. See docs for more information."))
+		})
+	})
+
+	context("when the layer metadata contains a cache match", func() {
+		it.Before(func() {
+			err := ioutil.WriteFile(filepath.Join(layersDir, "httpd.toml"),
+				[]byte("[metadata]\ncache_sha = \"some-sha\"\n"), 0600)
+			Expect(err).NotTo(HaveOccurred())
+
+			entryResolver.MergeLayerTypesCall.Returns.Launch = true
+		})
+
+		it("reuses the layer", func() {
+			result, err := build(packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
+				WorkingDir: workingDir,
+				Layers:     packit.Layers{Path: layersDir},
+				CNBPath:    cnbPath,
+				Stack:      "some-stack",
+				Plan: packit.BuildpackPlan{
+					Entries: []packit.BuildpackPlanEntry{
+						{
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"version-source": "BP_HTTPD_VERSION",
+								"version":        "some-env-var-version",
+								"launch":         true,
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(packit.BuildResult{
+				Layers: []packit.Layer{
+					{
+						Name:             "httpd",
+						Path:             filepath.Join(layersDir, "httpd"),
+						Launch:           true,
+						SharedEnv:        packit.Environment{},
+						BuildEnv:         packit.Environment{},
+						LaunchEnv:        packit.Environment{},
+						ProcessLaunchEnv: map[string]packit.Environment{},
+						Metadata: map[string]interface{}{
+							"cache_sha": "some-sha",
+						},
+					},
+				},
+				Launch: packit.LaunchMetadata{
+					BOM: []packit.BOMEntry{
+						{
+							Name: "httpd",
+							Metadata: packit.BOMMetadata{
+								Version: "httpd-dependency-version",
+								Checksum: packit.BOMChecksum{
+									Algorithm: packit.SHA256,
+									Hash:      "httpd-dependency-sha",
+								},
+								URI: "httpd-dependency-uri",
+							},
+						},
+					},
+					Processes: []packit.Process{
+						{
+							Type:    "web",
+							Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+							Default: true,
+						},
+					},
+				},
+			}))
+
+			Expect(dependencyService.InstallCall.CallCount).To(Equal(0))
 		})
 	})
 
