@@ -2,8 +2,10 @@ package httpd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/paketo-buildpacks/packit"
 )
@@ -69,6 +71,32 @@ func Detect(parser Parser) packit.DetectFunc {
 			plan.Plan.Requires = requirements
 		}
 
+		shouldReload, err := checkLiveReloadEnabled()
+		if err != nil {
+			return packit.DetectResult{}, err
+		}
+
+		if shouldReload {
+			requirements = append(requirements, packit.BuildPlanRequirement{
+				Name: "watchexec",
+				Metadata: map[string]interface{}{
+					"launch": true,
+				},
+			})
+			plan.Plan.Requires = requirements
+		}
+
 		return plan, nil
 	}
+}
+
+func checkLiveReloadEnabled() (bool, error) {
+	if reload, ok := os.LookupEnv("BP_LIVE_RELOAD_ENABLED"); ok {
+		shouldEnableReload, err := strconv.ParseBool(reload)
+		if err != nil {
+			return false, fmt.Errorf("failed to parse BP_LIVE_RELOAD_ENABLED value %s: %w", reload, err)
+		}
+		return shouldEnableReload, nil
+	}
+	return false, nil
 }
