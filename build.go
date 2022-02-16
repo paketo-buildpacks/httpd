@@ -1,7 +1,6 @@
 package httpd
 
 import (
-	"fmt"
 	"path/filepath"
 	"time"
 
@@ -102,13 +101,54 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 			logger.Environment(httpdLayer.LaunchEnv)
 		}
 
+		command := "httpd"
+		args := []string{
+			"-f",
+			filepath.Join(context.WorkingDir, "httpd.conf"),
+			"-k",
+			"start",
+			"-DFOREGROUND",
+		}
 		launchMetadata.Processes = []packit.Process{
 			{
 				Type:    "web",
-				Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(context.WorkingDir, "httpd.conf")),
+				Command: command,
+				Args:    args,
 				Default: true,
+				Direct:  true,
 			},
 		}
+
+		shouldReload, err := checkLiveReloadEnabled()
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		if shouldReload {
+			launchMetadata.Processes = []packit.Process{
+				{
+					Type:    "web",
+					Command: "watchexec",
+					Args: append([]string{
+						"--restart",
+						"--watch", context.WorkingDir,
+						"--shell", "none",
+						"--",
+						command,
+					}, args...),
+					Default: true,
+					Direct:  true,
+				},
+				{
+					Type:    "no-reload",
+					Command: command,
+					Args:    args,
+					Direct:  true,
+				},
+			}
+		}
+
+		logger.LaunchProcesses(launchMetadata.Processes)
 
 		return packit.BuildResult{
 			Layers: []packit.Layer{httpdLayer},

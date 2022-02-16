@@ -88,6 +88,40 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(parser.ParseVersionCall.Receives.Path).To(Equal(filepath.Join(workingDir, "buildpack.yml")))
 		})
+
+		context("and BP_LIVE_RELOAD_ENABLED=true in the build environment", func() {
+			it.Before(func() {
+				os.Setenv("BP_LIVE_RELOAD_ENABLED", "true")
+			})
+
+			it.After(func() {
+				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+			})
+
+			it("requires watchexec at launch time", func() {
+				result, err := detect(packit.DetectContext{
+					WorkingDir: workingDir,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result.Plan.Requires).To(Equal([]packit.BuildPlanRequirement{
+					{
+						Name: httpd.PlanDependencyHTTPD,
+						Metadata: httpd.BuildPlanMetadata{
+							Version:       "some-version",
+							VersionSource: "some-version-source",
+							Launch:        true,
+						},
+					},
+					{
+						Name: "watchexec",
+						Metadata: map[string]interface{}{
+							"launch": true,
+						},
+					},
+				},
+				))
+			})
+		})
 	})
 
 	context("BP_HTTPD_VERSION is set", func() {
@@ -137,17 +171,36 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	})
 
 	context("failure cases", func() {
+		it.Before(func() {
+			_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		context("when ParseVersion fails", func() {
 			it.Before(func() {
-				_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
-				Expect(err).NotTo(HaveOccurred())
-
 				parser.ParseVersionCall.Returns.Err = errors.New("failed to parse version")
 			})
 
 			it("returns an error", func() {
 				_, err := detect(packit.DetectContext{WorkingDir: workingDir})
 				Expect(err).To(MatchError("failed to parse version"))
+			})
+		})
+
+		context("when BP_LIVE_RELOAD_ENABLED is set to an invalid value", func() {
+			it.Before(func() {
+				os.Setenv("BP_LIVE_RELOAD_ENABLED", "not-a-bool")
+			})
+
+			it.After(func() {
+				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+			})
+
+			it("returns an error", func() {
+				_, err := detect(packit.DetectContext{
+					WorkingDir: workingDir,
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_LIVE_RELOAD_ENABLED value not-a-bool")))
 			})
 		})
 	})
