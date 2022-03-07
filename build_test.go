@@ -3,7 +3,6 @@ package httpd_test
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -159,8 +158,16 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				Processes: []packit.Process{
 					{
 						Type:    "web",
-						Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+						Command: "httpd",
+						Args: []string{
+							"-f",
+							filepath.Join(workingDir, "httpd.conf"),
+							"-k",
+							"start",
+							"-DFOREGROUND",
+						},
 						Default: true,
+						Direct:  true,
 					},
 				},
 			},
@@ -266,8 +273,16 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					Processes: []packit.Process{
 						{
 							Type:    "web",
-							Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+							Command: "httpd",
+							Args: []string{
+								"-f",
+								filepath.Join(workingDir, "httpd.conf"),
+								"-k",
+								"start",
+								"-DFOREGROUND",
+							},
 							Default: true,
+							Direct:  true,
 						},
 					},
 				},
@@ -404,14 +419,90 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					Processes: []packit.Process{
 						{
 							Type:    "web",
-							Command: fmt.Sprintf("httpd -f %s -k start -DFOREGROUND", filepath.Join(workingDir, "httpd.conf")),
+							Command: "httpd",
+							Args: []string{
+								"-f",
+								filepath.Join(workingDir, "httpd.conf"),
+								"-k",
+								"start",
+								"-DFOREGROUND",
+							},
 							Default: true,
+							Direct:  true,
 						},
 					},
 				},
 			}))
 
 			Expect(dependencyService.InstallCall.CallCount).To(Equal(0))
+		})
+	})
+
+	context("when BP_LIVE_RELOAD_ENABLED=true in the build environment", func() {
+		it.Before(func() {
+			os.Setenv("BP_LIVE_RELOAD_ENABLED", "true")
+		})
+
+		it.After(func() {
+			os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+		})
+
+		it("uses watchexec to set the start command", func() {
+			result, err := build(packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
+				WorkingDir: workingDir,
+				Layers:     packit.Layers{Path: layersDir},
+				CNBPath:    cnbPath,
+				Stack:      "some-stack",
+				Plan: packit.BuildpackPlan{
+					Entries: []packit.BuildpackPlanEntry{
+						{
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"version-source": "BP_HTTPD_VERSION",
+								"version":        "some-env-var-version",
+								"launch":         true,
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Launch.Processes).To(Equal([]packit.Process{
+				{
+					Type:    "web",
+					Command: "watchexec",
+					Args: []string{
+						"--restart",
+						"--watch", workingDir,
+						"--shell", "none",
+						"--",
+						"httpd",
+						"-f",
+						filepath.Join(workingDir, "httpd.conf"),
+						"-k",
+						"start",
+						"-DFOREGROUND",
+					},
+					Default: true,
+					Direct:  true,
+				},
+				{
+					Type:    "no-reload",
+					Command: "httpd",
+					Args: []string{
+						"-f",
+						filepath.Join(workingDir, "httpd.conf"),
+						"-k",
+						"start",
+						"-DFOREGROUND",
+					},
+					Direct: true,
+				},
+			}))
 		})
 	})
 
@@ -488,6 +579,42 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					},
 				})
 				Expect(err).To(MatchError("failed to install dependency"))
+			})
+		})
+
+		context("when BP_LIVE_RELOAD_ENABLED is set to an invalid value", func() {
+			it.Before(func() {
+				os.Setenv("BP_LIVE_RELOAD_ENABLED", "not-a-bool")
+			})
+
+			it.After(func() {
+				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+			})
+
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					BuildpackInfo: packit.BuildpackInfo{
+						Name:    "Some Buildpack",
+						Version: "1.2.3",
+					},
+					WorkingDir: workingDir,
+					Layers:     packit.Layers{Path: layersDir},
+					CNBPath:    cnbPath,
+					Stack:      "some-stack",
+					Plan: packit.BuildpackPlan{
+						Entries: []packit.BuildpackPlanEntry{
+							{
+								Name: "httpd",
+								Metadata: map[string]interface{}{
+									"version-source": "BP_HTTPD_VERSION",
+									"version":        "some-env-var-version",
+									"launch":         true,
+								},
+							},
+						},
+					},
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_LIVE_RELOAD_ENABLED value not-a-bool")))
 			})
 		})
 	})

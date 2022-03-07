@@ -8,6 +8,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/paketo-buildpacks/occam"
+	"github.com/paketo-buildpacks/occam/packagers"
 	"github.com/sclevine/spec"
 	"github.com/sclevine/spec/report"
 
@@ -17,6 +18,7 @@ import (
 var (
 	httpdBuildpack        string
 	offlineHttpdBuildpack string
+	watchexecBuildpack    string
 	buildpackInfo         struct {
 		Buildpack struct {
 			ID   string
@@ -44,6 +46,7 @@ func TestIntegration(t *testing.T) {
 	Expect(err).NotTo(HaveOccurred())
 
 	buildpackStore := occam.NewBuildpackStore()
+	libpakBuildpackStore := occam.NewBuildpackStore().WithPackager(packagers.NewLibpak())
 
 	httpdBuildpack, err = buildpackStore.Get.
 		WithVersion("1.2.3").
@@ -55,6 +58,10 @@ func TestIntegration(t *testing.T) {
 		WithVersion("1.2.3").
 		Execute(root)
 	Expect(err).NotTo(HaveOccurred())
+
+	watchexecBuildpack, err = libpakBuildpackStore.Get.
+		Execute("github.com/paketo-buildpacks/watchexec")
+	Expect(err).ToNot(HaveOccurred())
 
 	SetDefaultEventuallyTimeout(5 * time.Second)
 
