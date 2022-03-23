@@ -1,8 +1,10 @@
 package integration_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
@@ -27,9 +29,7 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		pack = occam.NewPack().
-			WithNoColor().
-			WithVerbose()
+		pack = occam.NewPack().WithNoColor()
 		docker = occam.NewDocker()
 
 		var err error
@@ -59,8 +59,28 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 
 		build := pack.Build.WithBuildpacks(httpdBuildpack)
 
-		firstImage, _, err := build.Execute(name, source)
+		firstImage, logs, err := build.Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
+
+		Expect(logs).To(ContainLines(
+			MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
+			"  Resolving Apache HTTP Server version",
+			"    Candidate version sources (in priority order):",
+			`      <unknown> -> "*"`,
+			"",
+			MatchRegexp(`    Selected Apache HTTP Server version \(using \<unknown\>\): 2\.4\.\d+`),
+			"",
+			"  Executing build process",
+			MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
+			MatchRegexp(`      Completed in (\d+\.\d+|\d{3})`),
+			"",
+			"  Configuring launch environment",
+			`    APP_ROOT    -> "/workspace"`,
+			fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
+			"",
+			"  Assigning launch processes:",
+			"    web (default): httpd -f /workspace/httpd.conf -k start -DFOREGROUND",
+		))
 
 		imageIDs[firstImage.ID] = struct{}{}
 
@@ -79,8 +99,22 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 
 		Eventually(container).Should(BeAvailable())
 
-		secondImage, _, err := build.Execute(name, source)
+		secondImage, logs, err := build.Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
+
+		Expect(logs).To(ContainLines(
+			MatchRegexp(fmt.Sprintf(`%s \d+\.\d+\.\d+`, buildpackInfo.Buildpack.Name)),
+			"  Resolving Apache HTTP Server version",
+			"    Candidate version sources (in priority order):",
+			`      <unknown> -> "*"`,
+			"",
+			MatchRegexp(`    Selected Apache HTTP Server version \(using \<unknown\>\): 2\.4\.\d+`),
+			"",
+			"  Reusing cached layer /layers/paketo-buildpacks_httpd/httpd",
+			"",
+			"  Assigning launch processes:",
+			"    web (default): httpd -f /workspace/httpd.conf -k start -DFOREGROUND",
+		))
 
 		imageIDs[secondImage.ID] = struct{}{}
 
@@ -99,8 +133,7 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 
 		Eventually(container).Should(BeAvailable())
 
-		Expect(secondImage.Buildpacks[0].Layers["httpd"].Metadata["built_at"]).To(Equal(firstImage.Buildpacks[0].Layers["httpd"].Metadata["built_at"]))
-		Expect(secondImage.Buildpacks[0].Layers["httpd"].Metadata["cache_sha"]).To(Equal(firstImage.Buildpacks[0].Layers["httpd"].Metadata["cache_sha"]))
+		Expect(secondImage.Buildpacks[0].Layers["httpd"].SHA).To(Equal(firstImage.Buildpacks[0].Layers["httpd"].SHA))
 		Expect(secondImage.ID).To(Equal(firstImage.ID))
 	})
 }

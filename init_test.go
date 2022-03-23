@@ -11,7 +11,6 @@ func TestUnitHTTPD(t *testing.T) {
 	suite := spec.New("httpd", spec.Report(report.Terminal{}))
 	suite("Build", testBuild)
 	suite("Detect", testDetect)
-	suite("LogEmitter", testLogEmitter)
 	suite("VersionParser", testVersionParser)
 	suite.Run(t)
 }

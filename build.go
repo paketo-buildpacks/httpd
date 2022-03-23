@@ -5,28 +5,28 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"github.com/paketo-buildpacks/packit"
-	"github.com/paketo-buildpacks/packit/chronos"
-	"github.com/paketo-buildpacks/packit/postal"
+	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/chronos"
+	"github.com/paketo-buildpacks/packit/v2/postal"
+	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
 //go:generate faux --interface EntryResolver --output fakes/entry_resolver.go
-//go:generate faux --interface DependencyService --output fakes/dependency_service.go
-
 type EntryResolver interface {
-	Resolve(string, []packit.BuildpackPlanEntry, []interface{}) (packit.BuildpackPlanEntry, []packit.BuildpackPlanEntry)
-	MergeLayerTypes(string, []packit.BuildpackPlanEntry) (launch, build bool)
+	Resolve(name string, entries []packit.BuildpackPlanEntry, priorites []interface{}) (packit.BuildpackPlanEntry, []packit.BuildpackPlanEntry)
+	MergeLayerTypes(name string, entries []packit.BuildpackPlanEntry) (launch, build bool)
 }
 
+//go:generate faux --interface DependencyService --output fakes/dependency_service.go
 type DependencyService interface {
 	Resolve(path, name, version, stack string) (postal.Dependency, error)
-	Install(dependency postal.Dependency, cnbPath, layerPath string) error
+	Deliver(dependency postal.Dependency, cnbPath, layerPath, platformPath string) error
 	GenerateBillOfMaterials(dependencies ...postal.Dependency) []packit.BOMEntry
 }
 
-func Build(entries EntryResolver, dependencies DependencyService, clock chronos.Clock, logger LogEmitter) packit.BuildFunc {
+func Build(entries EntryResolver, dependencies DependencyService, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
-		logger.Title(context.BuildpackInfo)
+		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		logger.Process("Resolving Apache HTTP Server version")
 
 		priorities := []interface{}{
@@ -67,38 +67,6 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 		var launchMetadata packit.LaunchMetadata
 		if launch {
 			launchMetadata.BOM = bom
-		}
-		httpdLayer.Launch = launch
-
-		if sha, ok := httpdLayer.Metadata["cache_sha"].(string); !ok || sha != dependency.SHA256 {
-			logger.Process("Executing build process")
-
-			httpdLayer, err = httpdLayer.Reset()
-			if err != nil {
-				return packit.BuildResult{}, err
-			}
-			httpdLayer.Launch = launch
-
-			logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)
-			duration, err := clock.Measure(func() error {
-				return dependencies.Install(dependency, context.CNBPath, httpdLayer.Path)
-			})
-			if err != nil {
-				return packit.BuildResult{}, err
-			}
-			logger.Action("Completed in %s", duration.Round(time.Millisecond))
-			logger.Break()
-
-			httpdLayer.Metadata = map[string]interface{}{
-				"built_at":  clock.Now().Format(time.RFC3339Nano),
-				"cache_sha": dependency.SHA256,
-			}
-
-			logger.Process("Configuring environment")
-			httpdLayer.LaunchEnv.Override("APP_ROOT", context.WorkingDir)
-			httpdLayer.LaunchEnv.Override("SERVER_ROOT", httpdLayer.Path)
-
-			logger.Environment(httpdLayer.LaunchEnv)
 		}
 
 		command := "httpd"
@@ -147,6 +115,48 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 				},
 			}
 		}
+
+		cachedSHA, ok := httpdLayer.Metadata["cache_sha"].(string)
+		if ok && cachedSHA == dependency.SHA256 {
+			logger.Process("Reusing cached layer %s", httpdLayer.Path)
+			logger.Break()
+
+			httpdLayer.Launch = launch
+
+			logger.LaunchProcesses(launchMetadata.Processes)
+
+			return packit.BuildResult{
+				Layers: []packit.Layer{httpdLayer},
+				Launch: launchMetadata,
+			}, nil
+		}
+
+		logger.Process("Executing build process")
+
+		httpdLayer, err = httpdLayer.Reset()
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+		httpdLayer.Launch = launch
+
+		logger.Subprocess("Installing Apache HTTP Server %s", dependency.Version)
+		duration, err := clock.Measure(func() error {
+			return dependencies.Deliver(dependency, context.CNBPath, httpdLayer.Path, context.Platform.Path)
+		})
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+		logger.Action("Completed in %s", duration.Round(time.Millisecond))
+		logger.Break()
+
+		httpdLayer.Metadata = map[string]interface{}{
+			"cache_sha": dependency.SHA256,
+		}
+
+		httpdLayer.LaunchEnv.Override("APP_ROOT", context.WorkingDir)
+		httpdLayer.LaunchEnv.Override("SERVER_ROOT", httpdLayer.Path)
+
+		logger.EnvironmentVariables(httpdLayer)
 
 		logger.LaunchProcesses(launchMetadata.Processes)
 
