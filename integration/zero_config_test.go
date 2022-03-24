@@ -94,4 +94,28 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 			Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080))
 		})
 	})
+
+	context("when the user sets a push state", func() {
+		it("serves a static site that always serves index.html no matter the route", func() {
+			var err error
+			image, _, err = pack.Build.
+				WithPullPolicy("never").
+				WithBuildpacks(httpdBuildpack).
+				WithEnv(map[string]string{
+					"BP_WEB_SERVER":                   "httpd",
+					"BP_WEB_SERVER_ENABLE_PUSH_STATE": "true",
+				}).
+				Execute(name, source)
+			Expect(err).NotTo(HaveOccurred())
+
+			container, err = docker.Container.Run.
+				WithEnv(map[string]string{"PORT": "8080"}).
+				WithPublish("8080").
+				WithPublishAll().
+				Execute(image.ID)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080).WithEndpoint("/test"))
+		})
+	})
 }
