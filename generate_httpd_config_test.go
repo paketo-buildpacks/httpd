@@ -84,7 +84,11 @@ CustomLog logs/access_log common
 
 <Directory "${APP_ROOT}/public">
   Require all granted
-</Directory>`), string(contents))
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`), string(contents))
 		})
 
 		context("when BP_WEB_SERVER_ROOT is set", func() {
@@ -138,7 +142,11 @@ CustomLog logs/access_log common
 
 <Directory "${APP_ROOT}/htdocs">
   Require all granted
-</Directory>`), string(contents))
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`), string(contents))
 			})
 		})
 
@@ -202,7 +210,11 @@ CustomLog logs/access_log common
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule (.*) index.html
-</Directory>`), string(contents))
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`), string(contents))
 			})
 		})
 
@@ -263,7 +275,11 @@ CustomLog logs/access_log common
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-</Directory>`), string(contents))
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`), string(contents))
 			})
 		})
 

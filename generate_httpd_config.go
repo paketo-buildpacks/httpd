@@ -124,7 +124,11 @@ CustomLog logs/access_log common
   RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 {{- end}}
-</Directory>`
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`
 )
 
 func checkEnvironemntVariableTruthy(env string) (bool, error) {
