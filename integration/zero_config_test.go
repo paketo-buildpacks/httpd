@@ -1,6 +1,9 @@
 package integration_test
 
 import (
+	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -116,6 +119,42 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080).WithEndpoint("/test"))
+		})
+	})
+
+	context("when the user sets https forced redirect", func() {
+		it("serves a static site that always redirects to https", func() {
+			var err error
+			image, _, err = pack.Build.
+				WithPullPolicy("never").
+				WithBuildpacks(httpdBuildpack).
+				WithEnv(map[string]string{
+					"BP_WEB_SERVER":             "httpd",
+					"BP_WEB_SERVER_FORCE_HTTPS": "true",
+				}).
+				Execute(name, source)
+			Expect(err).NotTo(HaveOccurred())
+
+			container, err = docker.Container.Run.
+				WithEnv(map[string]string{"PORT": "8080"}).
+				WithPublish("8080").
+				WithPublishAll().
+				Execute(image.ID)
+			Expect(err).NotTo(HaveOccurred())
+
+			client := &http.Client{
+				CheckRedirect: func(req *http.Request, via []*http.Request) error {
+					return http.ErrUseLastResponse
+				},
+			}
+
+			response, err := client.Get(fmt.Sprintf("http://localhost:%s", container.HostPort("8080")))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(response.StatusCode).To(Equal(http.StatusMovedPermanently))
+
+			contents, err := io.ReadAll(response.Body)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(contents)).To(ContainSubstring(fmt.Sprintf("https://localhost:%s", container.HostPort("8080"))))
 		})
 	})
 }

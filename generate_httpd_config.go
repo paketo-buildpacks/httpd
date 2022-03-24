@@ -17,6 +17,7 @@ type GenerateHTTPDConfig struct {
 type configOptions struct {
 	WebServerRoot string
 	PushState     bool
+	ForceHTTPS    bool
 }
 
 func NewGenerateHTTPDConfig(logger scribe.Emitter) GenerateHTTPDConfig {
@@ -49,6 +50,11 @@ func (g GenerateHTTPDConfig) Generate(workingDir string) error {
 		return err
 	}
 
+	confOptions.ForceHTTPS, err = checkEnvironemntVariableTruthy("BP_WEB_SERVER_FORCE_HTTPS")
+	if err != nil {
+		return err
+	}
+
 	err = t.Execute(confFile, confOptions)
 	if err != nil {
 		return err
@@ -72,8 +78,10 @@ LoadModule mime_module modules/mod_mime.so
 LoadModule dir_module modules/mod_dir.so
 LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule unixd_module modules/mod_unixd.so
-{{if .PushState -}}
+{{if or .PushState .ForceHTTPS -}}
 LoadModule rewrite_module modules/mod_rewrite.so
+{{end}}
+{{- if .PushState -}}
 LoadModule autoindex_module modules/mod_autoindex.so
 {{end}}
 TypesConfig conf/mime.types
@@ -108,6 +116,13 @@ CustomLog logs/access_log common
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule (.*) index.html
+{{- end}}
+{{- if .ForceHTTPS}}
+
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 {{- end}}
 </Directory>`
 )
