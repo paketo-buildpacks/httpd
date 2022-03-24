@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
-
 	"github.com/sclevine/spec"
 
 	. "github.com/onsi/gomega"
 	. "github.com/paketo-buildpacks/occam/matchers"
 )
 
-func testOffline(t *testing.T, when spec.G, it spec.S) {
+func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect     = NewWithT(t).Expect
 		Eventually = NewWithT(t).Eventually
@@ -28,7 +27,7 @@ func testOffline(t *testing.T, when spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		pack = occam.NewPack().WithNoColor().WithVerbose()
+		pack = occam.NewPack().WithVerbose()
 		docker = occam.NewDocker()
 
 		var err error
@@ -43,28 +42,28 @@ func testOffline(t *testing.T, when spec.G, it spec.S) {
 		Expect(os.RemoveAll(source)).To(Succeed())
 	})
 
-	when("offline", func() {
-		it("serves up staticfile", func() {
-			var err error
+	it("serves up uses default config", func() {
+		var err error
 
-			source, err = occam.Source(filepath.Join("testdata", "simple_app"))
-			Expect(err).NotTo(HaveOccurred())
+		source, err = occam.Source(filepath.Join("testdata", "zero_config"))
+		Expect(err).NotTo(HaveOccurred())
 
-			image, _, err = pack.Build.
-				WithPullPolicy("never").
-				WithBuildpacks(offlineHttpdBuildpack).
-				WithNetwork("none").
-				Execute(name, source)
-			Expect(err).NotTo(HaveOccurred())
+		image, _, err = pack.Build.
+			WithPullPolicy("never").
+			WithBuildpacks(httpdBuildpack).
+			WithEnv(map[string]string{
+				"BP_WEB_SERVER": "httpd",
+			}).
+			Execute(name, source)
+		Expect(err).NotTo(HaveOccurred())
 
-			container, err = docker.Container.Run.
-				WithEnv(map[string]string{"PORT": "8080"}).
-				WithPublish("8080").
-				WithPublishAll().
-				Execute(image.ID)
-			Expect(err).NotTo(HaveOccurred())
+		container, err = docker.Container.Run.
+			WithEnv(map[string]string{"PORT": "8080"}).
+			WithPublish("8080").
+			WithPublishAll().
+			Execute(image.ID)
+		Expect(err).NotTo(HaveOccurred())
 
-			Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080))
-		})
+		Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080))
 	})
 }

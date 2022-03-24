@@ -31,6 +31,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		entryResolver     *fakes.EntryResolver
 		dependencyService *fakes.DependencyService
+		generateConfig    *fakes.GenerateConfig
 		buffer            *bytes.Buffer
 
 		build packit.BuildFunc
@@ -82,9 +83,11 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			},
 		}
 
+		generateConfig = &fakes.GenerateConfig{}
+
 		buffer = bytes.NewBuffer(nil)
 
-		build = httpd.Build(entryResolver, dependencyService, chronos.DefaultClock, scribe.NewEmitter(buffer))
+		build = httpd.Build(entryResolver, dependencyService, generateConfig, chronos.DefaultClock, scribe.NewEmitter(buffer))
 	})
 
 	it.After(func() {
@@ -182,6 +185,8 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(dependencyService.DeliverCall.Receives.CnbPath).To(Equal(cnbPath))
 		Expect(dependencyService.DeliverCall.Receives.LayerPath).To(Equal(filepath.Join(layersDir, "httpd")))
 		Expect(dependencyService.DeliverCall.Receives.PlatformPath).To(Equal("platform"))
+
+		Expect(generateConfig.GenerateCall.CallCount).To(Equal(0))
 	})
 
 	context("when the entry contains a version constraint", func() {
@@ -345,6 +350,42 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("when BP_WEB_SERVER=httpd", func() {
+		it.Before(func() {
+			os.Setenv("BP_WEB_SERVER", "httpd")
+		})
+
+		it.After(func() {
+			os.Unsetenv("BP_WEB_SERVER")
+		})
+
+		it("generates a httpd.conf", func() {
+			_, err := build(packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
+				WorkingDir: workingDir,
+				Layers:     packit.Layers{Path: layersDir},
+				CNBPath:    cnbPath,
+				Stack:      "some-stack",
+				Plan: packit.BuildpackPlan{
+					Entries: []packit.BuildpackPlanEntry{
+						{
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"launch": true,
+							},
+						},
+					},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(generateConfig.GenerateCall.Receives.WorkingDir).To(Equal(workingDir))
+		})
+	})
+
 	context("when the layer metadata contains a cache match", func() {
 		it.Before(func() {
 			err := os.WriteFile(filepath.Join(layersDir, "httpd.toml"),
@@ -498,19 +539,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
-					BuildpackInfo: packit.BuildpackInfo{
-						Name:    "Some Buildpack",
-						Version: "1.2.3",
-					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,
-					Stack:      "some-stack",
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "httpd", Metadata: map[string]interface{}{"launch": true}},
-						},
-					},
 				})
 				Expect(err).To(MatchError(ContainSubstring("permission denied")))
 			})
@@ -523,46 +554,11 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
-					BuildpackInfo: packit.BuildpackInfo{
-						Name:    "Some Buildpack",
-						Version: "1.2.3",
-					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,
-					Stack:      "some-stack",
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "httpd", Metadata: map[string]interface{}{"launch": true}},
-						},
-					},
 				})
 				Expect(err).To(MatchError("failed to resolve dependency"))
-			})
-		})
-
-		context("when the dependency cannot be installed", func() {
-			it.Before(func() {
-				dependencyService.DeliverCall.Returns.Error = errors.New("failed to install dependency")
-			})
-
-			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					BuildpackInfo: packit.BuildpackInfo{
-						Name:    "Some Buildpack",
-						Version: "1.2.3",
-					},
-					WorkingDir: workingDir,
-					Layers:     packit.Layers{Path: layersDir},
-					CNBPath:    cnbPath,
-					Stack:      "some-stack",
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{Name: "httpd", Metadata: map[string]interface{}{"launch": true}},
-						},
-					},
-				})
-				Expect(err).To(MatchError("failed to install dependency"))
 			})
 		})
 
@@ -577,28 +573,47 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			it("returns an error", func() {
 				_, err := build(packit.BuildContext{
-					BuildpackInfo: packit.BuildpackInfo{
-						Name:    "Some Buildpack",
-						Version: "1.2.3",
-					},
 					WorkingDir: workingDir,
 					Layers:     packit.Layers{Path: layersDir},
 					CNBPath:    cnbPath,
-					Stack:      "some-stack",
-					Plan: packit.BuildpackPlan{
-						Entries: []packit.BuildpackPlanEntry{
-							{
-								Name: "httpd",
-								Metadata: map[string]interface{}{
-									"version-source": "BP_HTTPD_VERSION",
-									"version":        "some-env-var-version",
-									"launch":         true,
-								},
-							},
-						},
-					},
 				})
 				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_LIVE_RELOAD_ENABLED value not-a-bool")))
+			})
+		})
+
+		context("when generating the config file fails", func() {
+			it.Before(func() {
+				generateConfig.GenerateCall.Returns.Error = errors.New("failed to generate config file")
+
+				os.Setenv("BP_WEB_SERVER", "httpd")
+			})
+
+			it.After(func() {
+				os.Unsetenv("BP_WEB_SERVER")
+			})
+
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					WorkingDir: workingDir,
+					Layers:     packit.Layers{Path: layersDir},
+					CNBPath:    cnbPath,
+				})
+				Expect(err).To(MatchError("failed to generate config file"))
+			})
+		})
+
+		context("when the dependency cannot be installed", func() {
+			it.Before(func() {
+				dependencyService.DeliverCall.Returns.Error = errors.New("failed to install dependency")
+			})
+
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					WorkingDir: workingDir,
+					Layers:     packit.Layers{Path: layersDir},
+					CNBPath:    cnbPath,
+				})
+				Expect(err).To(MatchError("failed to install dependency"))
 			})
 		})
 	})

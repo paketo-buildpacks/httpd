@@ -18,12 +18,14 @@ func main() {
 	logEmitter := scribe.NewEmitter(os.Stdout).WithLevel(os.Getenv("BP_LOG_LEVEL"))
 	versionParser := httpd.NewVersionParser()
 	entryResolver := draft.NewPlanner()
+	generateHTTPDConfig := httpd.NewGenerateHTTPDConfig(logEmitter)
 
 	packit.Run(
 		httpd.Detect(versionParser),
 		httpd.Build(
 			entryResolver,
 			dependencyService,
+			generateHTTPDConfig,
 			chronos.DefaultClock,
 			logEmitter,
 		),
