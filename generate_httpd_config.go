@@ -12,7 +12,9 @@ type GenerateHTTPDConfig struct {
 	logger scribe.Emitter
 }
 
-type configOptions struct{}
+type configOptions struct {
+	WebServerRoot string
+}
 
 func NewGenerateHTTPDConfig(logger scribe.Emitter) GenerateHTTPDConfig {
 	return GenerateHTTPDConfig{
@@ -26,11 +28,17 @@ func (g GenerateHTTPDConfig) Generate(workingDir string) error {
 		return err
 	}
 
-	var confOptions configOptions
-
 	confFile, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
 	if err != nil {
 		return err
+	}
+
+	confOptions := configOptions{
+		WebServerRoot: "public",
+	}
+
+	if val, ok := os.LookupEnv("BP_WEB_SERVER_ROOT"); ok {
+		confOptions.WebServerRoot = val
 	}
 
 	err = t.Execute(confFile, confOptions)
@@ -38,6 +46,10 @@ func (g GenerateHTTPDConfig) Generate(workingDir string) error {
 		return err
 	}
 
+	err = confFile.Close()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -59,7 +71,7 @@ User nobody
 
 Listen "${PORT}"
 
-DocumentRoot "${APP_ROOT}/public"
+DocumentRoot "${APP_ROOT}/{{.WebServerRoot}}"
 
 DirectoryIndex index.html
 
@@ -73,7 +85,7 @@ CustomLog logs/access_log common
   Require all denied
 </Directory>
 
-<Directory "${APP_ROOT}/public">
+<Directory "${APP_ROOT}/{{.WebServerRoot}}">
   Require all granted
 </Directory>`
 )
