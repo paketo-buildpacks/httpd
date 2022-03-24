@@ -1,7 +1,6 @@
 package httpd_test
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -36,7 +35,7 @@ func testVersionParser(t *testing.T, context spec.G, it spec.S) {
 			var path string
 
 			it.Before(func() {
-				file, err := ioutil.TempFile("", "buildpack.yml")
+				file, err := os.CreateTemp("", "buildpack.yml")
 				Expect(err).NotTo(HaveOccurred())
 
 				_, err = file.WriteString(`{"httpd": {"version": "some-version"}}`)
@@ -60,7 +59,7 @@ func testVersionParser(t *testing.T, context spec.G, it spec.S) {
 
 			context("when there is not httpd version in the buildpack.yml", func() {
 				it.Before(func() {
-					err := ioutil.WriteFile(path, []byte(`{"some-thing": {"version": "some-version"}}`), 0644)
+					err := os.WriteFile(path, []byte(`{"some-thing": {"version": "some-version"}}`), 0644)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
@@ -87,7 +86,7 @@ func testVersionParser(t *testing.T, context spec.G, it spec.S) {
 
 				context("when the file contains malformed yaml", func() {
 					it.Before(func() {
-						err := ioutil.WriteFile(path, []byte("%%%"), 0644)
+						err := os.WriteFile(path, []byte("%%%"), 0644)
 						Expect(err).NotTo(HaveOccurred())
 					})
 

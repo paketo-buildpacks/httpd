@@ -71,7 +71,7 @@ func testLogging(t *testing.T, context spec.G, it spec.S) {
 			MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
 			MatchRegexp(`      Completed in (\d+\.\d+|\d{3})`),
 			"",
-			"  Configuring environment",
+			"  Configuring launch environment",
 			`    APP_ROOT    -> "/workspace"`,
 			fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
 		))
@@ -110,7 +110,7 @@ func testLogging(t *testing.T, context spec.G, it spec.S) {
 				MatchRegexp(`    Installing Apache HTTP Server \d+\.\d+\.\d+`),
 				MatchRegexp(`      Completed in (\d+\.\d+|\d{3})`),
 				"",
-				"  Configuring environment",
+				"  Configuring launch environment",
 				`    APP_ROOT    -> "/workspace"`,
 				fmt.Sprintf(`    SERVER_ROOT -> "/layers/%s/httpd"`, strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
 			))
