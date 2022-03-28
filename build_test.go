@@ -369,6 +369,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				Layers:     packit.Layers{Path: layersDir},
 				CNBPath:    cnbPath,
 				Stack:      "some-stack",
+				Platform:   packit.Platform{Path: "platform"},
 				Plan: packit.BuildpackPlan{
 					Entries: []packit.BuildpackPlanEntry{
 						{
@@ -383,6 +384,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(generateConfig.GenerateCall.Receives.WorkingDir).To(Equal(workingDir))
+			Expect(generateConfig.GenerateCall.Receives.PlatformPath).To(Equal("platform"))
 		})
 	})
 

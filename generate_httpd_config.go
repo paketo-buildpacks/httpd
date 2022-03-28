@@ -8,25 +8,34 @@ import (
 	"text/template"
 
 	"github.com/paketo-buildpacks/packit/v2/scribe"
+	"github.com/paketo-buildpacks/packit/v2/servicebindings"
 )
 
+//go:generate faux --interface BindingResolver --output fakes/binding_resolver.go
+type BindingResolver interface {
+	Resolve(typ, provider, platformDir string) ([]servicebindings.Binding, error)
+}
+
 type GenerateHTTPDConfig struct {
-	logger scribe.Emitter
+	bindingResolver BindingResolver
+	logger          scribe.Emitter
 }
 
 type configOptions struct {
 	WebServerRoot string
 	PushState     bool
 	ForceHTTPS    bool
+	HtpasswdPath  string
 }
 
-func NewGenerateHTTPDConfig(logger scribe.Emitter) GenerateHTTPDConfig {
+func NewGenerateHTTPDConfig(bindingResolver BindingResolver, logger scribe.Emitter) GenerateHTTPDConfig {
 	return GenerateHTTPDConfig{
-		logger: logger,
+		bindingResolver: bindingResolver,
+		logger:          logger,
 	}
 }
 
-func (g GenerateHTTPDConfig) Generate(workingDir string) error {
+func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 	t, err := template.New("httpd.conf").Parse(httpdConf)
 	if err != nil {
 		return err
@@ -53,6 +62,25 @@ func (g GenerateHTTPDConfig) Generate(workingDir string) error {
 	confOptions.ForceHTTPS, err = checkEnvironemntVariableTruthy("BP_WEB_SERVER_FORCE_HTTPS")
 	if err != nil {
 		return err
+	}
+
+	bindings, err := g.bindingResolver.Resolve("htpasswd", "", platformPath)
+	if err != nil {
+		return err
+	}
+
+	if len(bindings) > 1 {
+		return fmt.Errorf("failed: binding resolver found more than one binding of type 'htpasswd'")
+	}
+
+	if len(bindings) == 1 {
+		// p.logs.Process("Loading service binding of type '%s'", typ)
+
+		if _, ok := bindings[0].Entries[".htpasswd"]; !ok {
+			return fmt.Errorf("failed: binding of type 'htpasswd' does not contain required entry '.htpasswd'")
+		}
+
+		confOptions.HtpasswdPath = filepath.Join(bindings[0].Path, ".htpasswd")
 	}
 
 	err = t.Execute(confFile, confOptions)
@@ -84,6 +112,14 @@ LoadModule rewrite_module modules/mod_rewrite.so
 {{- if .PushState -}}
 LoadModule autoindex_module modules/mod_autoindex.so
 {{end}}
+{{- if .HtpasswdPath -}}
+LoadModule authn_core_module modules/mod_authn_core.so
+LoadModule authn_file_module modules/mod_authn_file.so
+LoadModule authz_host_module modules/mod_authz_host.so
+LoadModule authz_user_module modules/mod_authz_user.so
+LoadModule access_compat_module modules/mod_access_compat.so
+LoadModule auth_basic_module modules/mod_auth_basic.so
+{{end}}
 TypesConfig conf/mime.types
 
 PidFile logs/httpd.pid
@@ -107,7 +143,11 @@ CustomLog logs/access_log common
 </Directory>
 
 <Directory "${APP_ROOT}/{{.WebServerRoot}}">
+{{- if .HtpasswdPath}}
+  Require valid-user
+{{- else}}
   Require all granted
+{{- end}}
 {{- if .PushState}}
 
   Options +FollowSymLinks
@@ -123,6 +163,15 @@ CustomLog logs/access_log common
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+{{- end}}
+{{- if .HtpasswdPath}}
+
+  AuthType Basic
+  AuthName "Authentication Required"
+  AuthUserFile "{{.HtpasswdPath}}"
+
+  Order allow,deny
+  Allow from all
 {{- end}}
 </Directory>
 

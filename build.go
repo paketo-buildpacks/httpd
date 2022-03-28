@@ -27,7 +27,7 @@ type DependencyService interface {
 
 //go:generate faux --interface GenerateConfig --output fakes/generate_config.go
 type GenerateConfig interface {
-	Generate(workingDir string) error
+	Generate(workingDir, platformPath string) error
 }
 
 func Build(entries EntryResolver, dependencies DependencyService, generateConfig GenerateConfig, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
@@ -123,7 +123,7 @@ func Build(entries EntryResolver, dependencies DependencyService, generateConfig
 		}
 
 		if val, ok := os.LookupEnv("BP_WEB_SERVER"); ok && val == "httpd" {
-			err = generateConfig.Generate(context.WorkingDir)
+			err = generateConfig.Generate(context.WorkingDir, context.Platform.Path)
 			if err != nil {
 				return packit.BuildResult{}, err
 			}
