@@ -77,6 +77,57 @@ httpd:
   version: "2.4.43"
 ```
 
+## Zero Configuration Variables
+
+The Apache HTTPD Server Buildpack now supports the ability for a user to just
+provide a static application without having a `httpd.conf` and the buildpack
+will now generate a default `httpd.conf`. In order to activate this workflow
+the `BP_WEB_SERVER` environment variable must be set to `httpd`.
+
+```shell
+BP_WEB_SERVER=httpd
+```
+
+While this will provide a default configuration there are a few modifications
+that can be made to this `httpd.conf` by setting the following environment
+variables and service bindings.
+
+### `BP_WEB_SERVER_ROOT`
+The `BP_WEB_SERVER_ROOT` variable allows you to modify the location of the static files
+served by the web server by assigning the `BP_WEB_SERVER_ROOT` variable with an
+absolute file path or a file path relative to `/workspace`. For example,
+setting `BP_WEB_SERVER_ROOT=my-build-directory` would change the file path of
+served files to `/workspace/my-build-directory`.
+
+```shell
+BP_WEB_SERVER_ROOT=htdocs
+```
+
+### `BP_WEB_SERVER_ENABLE_PUSH_STATE`
+The `BP_WEB_SERVER_ENABLE_PUSH_STATE` variable to enable push state routing functionality.
+
+```shell
+BP_WEB_SERVER_ENABLE_PUSH_STATE=true
+```
+
+### `BP_WEB_SERVE_FORCE_HTTPS`
+The `BP_WEB_SERVE_FORCE_HTTPS` variable allows to enforce HTTPS for server connnections.
+
+```shell
+BP_WEB_SERVER_FORCE_HTTPS=true
+```
+
+### Basic Authentication
+You are able to provide basic authentication credentials via an `htpasswd` type
+service binding specifying the contents of a `.htpasswd` file. The service
+binding will have the following directory structure.
+
+```plain
+binding
+└── type
+└── .htpasswd
+```
+
 ## Stack support
 
 The HTTPD buildpack requires that you use the Paketo [Full
