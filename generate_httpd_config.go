@@ -36,6 +36,8 @@ func NewGenerateHTTPDConfig(bindingResolver BindingResolver, logger scribe.Emitt
 }
 
 func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
+	g.logger.Process("Generating httpd.conf")
+
 	t, err := template.New("httpd.conf").Parse(httpdConf)
 	if err != nil {
 		return err
@@ -51,6 +53,7 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 	}
 
 	if val, ok := os.LookupEnv("BP_WEB_SERVER_ROOT"); ok {
+		g.logger.Subprocess("Adds configuration to set web server root to '%s'", val)
 		confOptions.WebServerRoot = val
 	}
 
@@ -59,9 +62,17 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 		return err
 	}
 
+	if confOptions.PushState {
+		g.logger.Subprocess("Adds configuration that enables push state")
+	}
+
 	confOptions.ForceHTTPS, err = checkEnvironemntVariableTruthy("BP_WEB_SERVER_FORCE_HTTPS")
 	if err != nil {
 		return err
+	}
+
+	if confOptions.ForceHTTPS {
+		g.logger.Subprocess("Adds configuration that forces https redirect")
 	}
 
 	bindings, err := g.bindingResolver.Resolve("htpasswd", "", platformPath)
@@ -74,14 +85,16 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 	}
 
 	if len(bindings) == 1 {
-		// p.logs.Process("Loading service binding of type '%s'", typ)
-
 		if _, ok := bindings[0].Entries[".htpasswd"]; !ok {
 			return fmt.Errorf("failed: binding of type 'htpasswd' does not contain required entry '.htpasswd'")
 		}
 
+		g.logger.Subprocess("Adds configuration that configured basic authentication from service binding")
+
 		confOptions.HtpasswdPath = filepath.Join(bindings[0].Path, ".htpasswd")
 	}
+
+	g.logger.Break()
 
 	err = t.Execute(confFile, confOptions)
 	if err != nil {

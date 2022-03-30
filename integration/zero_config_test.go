@@ -31,7 +31,7 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 	)
 
 	it.Before(func() {
-		pack = occam.NewPack().WithVerbose()
+		pack = occam.NewPack().WithNoColor()
 		docker = occam.NewDocker()
 
 		var err error
@@ -54,8 +54,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("serves up uses default config", func() {
-			var err error
-			image, _, err = pack.Build.
+			var (
+				err  error
+				logs fmt.Stringer
+			)
+			image, logs, err = pack.Build.
 				WithPullPolicy("never").
 				WithBuildpacks(httpdBuildpack).
 				WithEnv(map[string]string{
@@ -63,6 +66,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 				}).
 				Execute(name, source)
 			Expect(err).NotTo(HaveOccurred())
+
+			Expect(logs).To(ContainLines(
+				"  Generating httpd.conf",
+				"",
+			))
 
 			container, err = docker.Container.Run.
 				WithEnv(map[string]string{"PORT": "8080"}).
@@ -80,8 +88,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 			})
 
 			it("serves a static site", func() {
-				var err error
-				image, _, err = pack.Build.
+				var (
+					err  error
+					logs fmt.Stringer
+				)
+				image, logs, err = pack.Build.
 					WithPullPolicy("never").
 					WithBuildpacks(httpdBuildpack).
 					WithEnv(map[string]string{
@@ -90,6 +101,12 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 					}).
 					Execute(name, source)
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(logs).To(ContainLines(
+					"  Generating httpd.conf",
+					"    Adds configuration to set web server root to 'htdocs'",
+					"",
+				))
 
 				container, err = docker.Container.Run.
 					WithEnv(map[string]string{"PORT": "8080"}).
@@ -104,8 +121,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 
 		context("when the user sets a push state", func() {
 			it("serves a static site that always serves index.html no matter the route", func() {
-				var err error
-				image, _, err = pack.Build.
+				var (
+					err  error
+					logs fmt.Stringer
+				)
+				image, logs, err = pack.Build.
 					WithPullPolicy("never").
 					WithBuildpacks(httpdBuildpack).
 					WithEnv(map[string]string{
@@ -114,6 +134,12 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 					}).
 					Execute(name, source)
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(logs).To(ContainLines(
+					"  Generating httpd.conf",
+					"    Adds configuration that enables push state",
+					"",
+				))
 
 				container, err = docker.Container.Run.
 					WithEnv(map[string]string{"PORT": "8080"}).
@@ -128,8 +154,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 
 		context("when the user sets https forced redirect", func() {
 			it("serves a static site that always redirects to https", func() {
-				var err error
-				image, _, err = pack.Build.
+				var (
+					err  error
+					logs fmt.Stringer
+				)
+				image, logs, err = pack.Build.
 					WithPullPolicy("never").
 					WithBuildpacks(httpdBuildpack).
 					WithEnv(map[string]string{
@@ -138,6 +167,12 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 					}).
 					Execute(name, source)
 				Expect(err).NotTo(HaveOccurred())
+
+				Expect(logs).To(ContainLines(
+					"  Generating httpd.conf",
+					"    Adds configuration that forces https redirect",
+					"",
+				))
 
 				container, err = docker.Container.Run.
 					WithEnv(map[string]string{"PORT": "8080"}).
@@ -171,8 +206,11 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("serves up a static site that requires basic auth", func() {
-			var err error
-			image, _, err = pack.Build.
+			var (
+				err  error
+				logs fmt.Stringer
+			)
+			image, logs, err = pack.Build.
 				WithPullPolicy("never").
 				WithBuildpacks(httpdBuildpack).
 				WithEnv(map[string]string{
@@ -182,6 +220,12 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 				WithVolumes(fmt.Sprintf("%s:/bindings/auth", filepath.Join(source, "binding"))).
 				Execute(name, filepath.Join(source, "app"))
 			Expect(err).NotTo(HaveOccurred())
+
+			Expect(logs).To(ContainLines(
+				"  Generating httpd.conf",
+				"    Adds configuration that configured basic authentication from service binding",
+				"",
+			))
 
 			container, err = docker.Container.Run.
 				WithEnv(map[string]string{

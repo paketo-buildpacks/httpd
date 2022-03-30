@@ -57,6 +57,8 @@ func testGenerateHTTPDConfig(t *testing.T, context spec.G, it spec.S) {
 			Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
 			Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
 
+			Expect(buffer.String()).To(ContainSubstring("Generating httpd.conf"))
+
 			contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
 			Expect(err).NotTo(HaveOccurred())
 
@@ -118,6 +120,8 @@ CustomLog logs/access_log common
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
 				Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
 				Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+
+				Expect(buffer.String()).To(ContainSubstring("Adds configuration to set web server root to 'htdocs'"))
 
 				contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
 				Expect(err).NotTo(HaveOccurred())
@@ -181,6 +185,8 @@ CustomLog logs/access_log common
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
 				Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
 				Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+
+				Expect(buffer.String()).To(ContainSubstring("Adds configuration that enables push state"))
 
 				contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
 				Expect(err).NotTo(HaveOccurred())
@@ -253,6 +259,8 @@ CustomLog logs/access_log common
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
 				Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
 				Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+
+				Expect(buffer.String()).To(ContainSubstring("Adds configuration that forces https redirect"))
 
 				contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
 				Expect(err).NotTo(HaveOccurred())
@@ -327,6 +335,8 @@ CustomLog logs/access_log common
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
 				Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
 				Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+
+				Expect(buffer.String()).To(ContainSubstring("Adds configuration that configured basic authentication from service binding"))
 
 				contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
 				Expect(err).NotTo(HaveOccurred())
