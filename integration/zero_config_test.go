@@ -104,7 +104,7 @@ func testZeroConfig(t *testing.T, context spec.G, it spec.S) {
 
 				Expect(logs).To(ContainLines(
 					"  Generating httpd.conf",
-					"    Adds configuration to set web server root to 'htdocs'",
+					"    Adds configuration to set web server root to '${APP_ROOT}/htdocs'",
 					"",
 				))
 

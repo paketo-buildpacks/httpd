@@ -49,10 +49,13 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 	}
 
 	confOptions := configOptions{
-		WebServerRoot: "public",
+		WebServerRoot: "${APP_ROOT}/public",
 	}
 
 	if val, ok := os.LookupEnv("BP_WEB_SERVER_ROOT"); ok {
+		if !filepath.IsAbs(val) {
+			val = fmt.Sprintf("${APP_ROOT}/%s", val)
+		}
 		g.logger.Subprocess("Adds configuration to set web server root to '%s'", val)
 		confOptions.WebServerRoot = val
 	}
@@ -141,7 +144,7 @@ User nobody
 
 Listen "${PORT}"
 
-DocumentRoot "${APP_ROOT}/{{.WebServerRoot}}"
+DocumentRoot "{{.WebServerRoot}}"
 
 DirectoryIndex index.html
 
@@ -155,7 +158,7 @@ CustomLog logs/access_log common
   Require all denied
 </Directory>
 
-<Directory "${APP_ROOT}/{{.WebServerRoot}}">
+<Directory "{{.WebServerRoot}}">
 {{- if .HtpasswdPath}}
   Require valid-user
 {{- else}}

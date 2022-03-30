@@ -105,28 +105,29 @@ CustomLog logs/access_log common
 		})
 
 		context("when BP_WEB_SERVER_ROOT is set", func() {
-			it.Before(func() {
-				os.Setenv("BP_WEB_SERVER_ROOT", "htdocs")
-			})
+			context("when the path given is no absolute", func() {
+				it.Before(func() {
+					os.Setenv("BP_WEB_SERVER_ROOT", "htdocs")
+				})
 
-			it.After(func() {
-				os.Unsetenv("BP_WEB_SERVER_ROOT")
-			})
+				it.After(func() {
+					os.Unsetenv("BP_WEB_SERVER_ROOT")
+				})
 
-			it("creates a config with the adjusted DocumentRoot and Directory path", func() {
-				err := generateHTTPDConfig.Generate(workingDir, "platform")
-				Expect(err).NotTo(HaveOccurred())
+				it("creates a config with the adjusted DocumentRoot and Directory path", func() {
+					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
-				Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
-				Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+					Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
+					Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
+					Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
 
-				Expect(buffer.String()).To(ContainSubstring("Adds configuration to set web server root to 'htdocs'"))
+					Expect(buffer.String()).To(ContainSubstring("Adds configuration to set web server root to '${APP_ROOT}/htdocs'"))
 
-				contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
-				Expect(err).NotTo(HaveOccurred())
+					contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(string(contents)).To(Equal(`ServerRoot "${SERVER_ROOT}"
+					Expect(string(contents)).To(Equal(`ServerRoot "${SERVER_ROOT}"
 
 ServerName "0.0.0.0"
 
@@ -166,6 +167,72 @@ CustomLog logs/access_log common
 <Files ".ht*">
   Require all denied
 </Files>`), string(contents))
+				})
+			})
+
+			context("when the path given is absolute", func() {
+				it.Before(func() {
+					os.Setenv("BP_WEB_SERVER_ROOT", "/absolute/path")
+				})
+
+				it.After(func() {
+					os.Unsetenv("BP_WEB_SERVER_ROOT")
+				})
+
+				it("creates a config with the adjusted DocumentRoot and Directory path", func() {
+					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
+					Expect(bindingResolver.ResolveCall.Receives.Provider).To(Equal(""))
+					Expect(bindingResolver.ResolveCall.Receives.PlatformDir).To(Equal("platform"))
+
+					Expect(buffer.String()).To(ContainSubstring("Adds configuration to set web server root to '/absolute/path'"))
+
+					contents, err := os.ReadFile(filepath.Join(workingDir, "httpd.conf"))
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(string(contents)).To(Equal(`ServerRoot "${SERVER_ROOT}"
+
+ServerName "0.0.0.0"
+
+LoadModule mpm_event_module modules/mod_mpm_event.so
+LoadModule log_config_module modules/mod_log_config.so
+LoadModule mime_module modules/mod_mime.so
+LoadModule dir_module modules/mod_dir.so
+LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule unixd_module modules/mod_unixd.so
+
+TypesConfig conf/mime.types
+
+PidFile logs/httpd.pid
+
+User nobody
+
+Listen "${PORT}"
+
+DocumentRoot "/absolute/path"
+
+DirectoryIndex index.html
+
+ErrorLog logs/error_log
+
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+CustomLog logs/access_log common
+
+<Directory />
+  AllowOverride None
+  Require all denied
+</Directory>
+
+<Directory "/absolute/path">
+  Require all granted
+</Directory>
+
+<Files ".ht*">
+  Require all denied
+</Files>`), string(contents))
+				})
 			})
 		})
 
