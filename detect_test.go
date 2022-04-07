@@ -29,6 +29,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		workingDir, err = os.MkdirTemp("", "working-dir")
 		Expect(err).NotTo(HaveOccurred())
 
+		_, err = os.Create(filepath.Join(workingDir, "httpd.conf"))
+		Expect(err).NotTo(HaveOccurred())
+
 		parser = &fakes.Parser{}
 		parser.ParseVersionCall.Returns.Version = "some-version"
 		parser.ParseVersionCall.Returns.VersionSource = "some-version-source"
@@ -40,28 +43,63 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		Expect(os.RemoveAll(workingDir)).To(Succeed())
 	})
 
-	it("returns a DetectResult that provides httpd", func() {
-		result, err := detect(packit.DetectContext{
-			WorkingDir: workingDir,
+	context("when there is no httpd.conf in the workspace", func() {
+		it.Before(func() {
+			Expect(os.Remove(filepath.Join(workingDir, "httpd.conf"))).To(Succeed())
 		})
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal(packit.DetectResult{
-			Plan: packit.BuildPlan{
-				Provides: []packit.BuildPlanProvision{
-					{Name: httpd.PlanDependencyHTTPD},
-				},
-			},
-		}))
 
-		Expect(parser.ParseVersionCall.CallCount).To(Equal(0))
+		it("returns a DetectResult that provides httpd", func() {
+			result, err := detect(packit.DetectContext{
+				WorkingDir: workingDir,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(packit.DetectResult{
+				Plan: packit.BuildPlan{
+					Provides: []packit.BuildPlanProvision{
+						{Name: httpd.PlanDependencyHTTPD},
+					},
+				},
+			}))
+
+			Expect(parser.ParseVersionCall.CallCount).To(Equal(0))
+		})
+
+		context("when BP_WEB_SERVER=httpd", func() {
+			it.Before(func() {
+				parser.ParseVersionCall.Returns.Version = "some-version"
+
+				Expect(os.Setenv("BP_WEB_SERVER", "httpd")).To(Succeed())
+			})
+
+			it.After(func() {
+				Expect(os.Unsetenv("BP_WEB_SERVER")).To(Succeed())
+			})
+
+			it("provides and requires httpd", func() {
+				result, err := detect(packit.DetectContext{
+					WorkingDir: workingDir,
+				})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(result).To(Equal(packit.DetectResult{
+					Plan: packit.BuildPlan{
+						Provides: []packit.BuildPlanProvision{
+							{Name: httpd.PlanDependencyHTTPD},
+						},
+						Requires: []packit.BuildPlanRequirement{
+							{
+								Name: httpd.PlanDependencyHTTPD,
+								Metadata: httpd.BuildPlanMetadata{
+									Launch: true,
+								},
+							},
+						},
+					},
+				}))
+			})
+		})
 	})
 
 	context("when there is an httpd.conf file in the workspace", func() {
-		it.Before(func() {
-			_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		it("returns a DetectResult that provides and required httpd", func() {
 			result, err := detect(packit.DetectContext{
 				WorkingDir: workingDir,
@@ -125,14 +163,10 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 	context("BP_HTTPD_VERSION is set", func() {
 		it.Before(func() {
-			_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
-			Expect(err).NotTo(HaveOccurred())
 			Expect(os.Setenv("BP_HTTPD_VERSION", "env-var-version")).To(Succeed())
 		})
 
 		it.After(func() {
-			err := os.Remove(filepath.Join(workingDir, "httpd.conf"))
-			Expect(err).NotTo(HaveOccurred())
 			Expect(os.Unsetenv("BP_HTTPD_VERSION")).To(Succeed())
 		})
 
@@ -170,9 +204,19 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	})
 
 	context("failure cases", func() {
-		it.Before(func() {
-			_, err := os.Create(filepath.Join(workingDir, "httpd.conf"))
-			Expect(err).NotTo(HaveOccurred())
+		context("fs.Exists fails", func() {
+			it.Before(func() {
+				Expect(os.Chmod(workingDir, 0000)).To(Succeed())
+			})
+
+			it.After(func() {
+				Expect(os.Chmod(workingDir, os.ModePerm)).To(Succeed())
+			})
+
+			it("returns an error", func() {
+				_, err := detect(packit.DetectContext{WorkingDir: workingDir})
+				Expect(err).To(MatchError(ContainSubstring("permission denied")))
+			})
 		})
 
 		context("when ParseVersion fails", func() {

@@ -70,5 +70,6 @@ func TestIntegration(t *testing.T) {
 	suite("Logging", testLogging)
 	suite("Offline", testOffline)
 	suite("SimpleApp", testSimpleApp)
+	suite("ZeroConfig", testZeroConfig)
 	suite.Run(t)
 }

@@ -1,8 +1,6 @@
 package integration_test
 
 import (
-	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -66,11 +64,7 @@ func testOffline(t *testing.T, when spec.G, it spec.S) {
 				Execute(image.ID)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(container).Should(BeAvailable())
-
-			response, err := http.Get(fmt.Sprintf("http://localhost:%s", container.HostPort("8080")))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(response.StatusCode).To(Equal(http.StatusOK))
+			Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080))
 		})
 	})
 }
