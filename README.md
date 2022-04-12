@@ -124,7 +124,7 @@ binding will have the following directory structure.
 
 ```plain
 binding
-└── type
+├── type
 └── .htpasswd
 ```
 
