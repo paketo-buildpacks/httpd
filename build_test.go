@@ -87,7 +87,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		buffer = bytes.NewBuffer(nil)
 
-		build = httpd.Build(entryResolver, dependencyService, generateConfig, chronos.DefaultClock, scribe.NewEmitter(buffer))
+		build = httpd.Build(httpd.BuildEnvironment{}, entryResolver, dependencyService, generateConfig, chronos.DefaultClock, scribe.NewEmitter(buffer))
 	})
 
 	it.After(func() {
@@ -352,11 +352,16 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 	context("when BP_WEB_SERVER=httpd", func() {
 		it.Before(func() {
-			os.Setenv("BP_WEB_SERVER", "httpd")
-		})
-
-		it.After(func() {
-			os.Unsetenv("BP_WEB_SERVER")
+			build = httpd.Build(
+				httpd.BuildEnvironment{
+					WebServer: "httpd",
+				},
+				entryResolver,
+				dependencyService,
+				generateConfig,
+				chronos.DefaultClock,
+				scribe.NewEmitter(buffer),
+			)
 		})
 
 		it("generates a httpd.conf", func() {
@@ -385,6 +390,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(generateConfig.GenerateCall.Receives.WorkingDir).To(Equal(workingDir))
 			Expect(generateConfig.GenerateCall.Receives.PlatformPath).To(Equal("platform"))
+			Expect(generateConfig.GenerateCall.Receives.BuildEnvironment).To(Equal(httpd.BuildEnvironment{
+				WebServer: "httpd",
+			}))
 		})
 	})
 
@@ -467,11 +475,16 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 	context("when BP_LIVE_RELOAD_ENABLED=true in the build environment", func() {
 		it.Before(func() {
-			os.Setenv("BP_LIVE_RELOAD_ENABLED", "true")
-		})
-
-		it.After(func() {
-			os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+			build = httpd.Build(
+				httpd.BuildEnvironment{
+					Reload: true,
+				},
+				entryResolver,
+				dependencyService,
+				generateConfig,
+				chronos.DefaultClock,
+				scribe.NewEmitter(buffer),
+			)
 		})
 
 		it("uses watchexec to set the start command", func() {
@@ -564,34 +577,20 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 
-		context("when BP_LIVE_RELOAD_ENABLED is set to an invalid value", func() {
-			it.Before(func() {
-				os.Setenv("BP_LIVE_RELOAD_ENABLED", "not-a-bool")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
-			})
-
-			it("returns an error", func() {
-				_, err := build(packit.BuildContext{
-					WorkingDir: workingDir,
-					Layers:     packit.Layers{Path: layersDir},
-					CNBPath:    cnbPath,
-				})
-				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_LIVE_RELOAD_ENABLED value not-a-bool")))
-			})
-		})
-
 		context("when generating the config file fails", func() {
 			it.Before(func() {
 				generateConfig.GenerateCall.Returns.Error = errors.New("failed to generate config file")
 
-				os.Setenv("BP_WEB_SERVER", "httpd")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_WEB_SERVER")
+				build = httpd.Build(
+					httpd.BuildEnvironment{
+						WebServer: "httpd",
+					},
+					entryResolver,
+					dependencyService,
+					generateConfig,
+					chronos.DefaultClock,
+					scribe.NewEmitter(buffer),
+				)
 			})
 
 			it("returns an error", func() {

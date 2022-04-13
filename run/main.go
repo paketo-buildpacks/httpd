@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/paketo-buildpacks/httpd"
+
+	"github.com/caarlos0/env/v6"
 	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
@@ -21,9 +24,20 @@ func main() {
 	entryResolver := draft.NewPlanner()
 	generateHTTPDConfig := httpd.NewGenerateHTTPDConfig(servicebindings.NewResolver(), logEmitter)
 
+	var buildEnvironment httpd.BuildEnvironment
+	err := env.Parse(&buildEnvironment)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, fmt.Errorf("failed to parse build configuration: %w", err))
+		os.Exit(1)
+	}
+
 	packit.Run(
-		httpd.Detect(versionParser),
+		httpd.Detect(
+			buildEnvironment,
+			versionParser,
+		),
 		httpd.Build(
+			buildEnvironment,
 			entryResolver,
 			dependencyService,
 			generateHTTPDConfig,

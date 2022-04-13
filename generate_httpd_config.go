@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"text/template"
 
 	"github.com/paketo-buildpacks/packit/v2/scribe"
@@ -21,13 +20,6 @@ type GenerateHTTPDConfig struct {
 	logger          scribe.Emitter
 }
 
-type configOptions struct {
-	WebServerRoot string
-	PushState     bool
-	ForceHTTPS    bool
-	HtpasswdPath  string
-}
-
 func NewGenerateHTTPDConfig(bindingResolver BindingResolver, logger scribe.Emitter) GenerateHTTPDConfig {
 	return GenerateHTTPDConfig{
 		bindingResolver: bindingResolver,
@@ -35,7 +27,7 @@ func NewGenerateHTTPDConfig(bindingResolver BindingResolver, logger scribe.Emitt
 	}
 }
 
-func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
+func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string, buildEnvironment BuildEnvironment) error {
 	g.logger.Process("Generating httpd.conf")
 
 	t, err := template.New("httpd.conf").Parse(httpdConf)
@@ -48,33 +40,22 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 		return err
 	}
 
-	confOptions := configOptions{
-		WebServerRoot: "${APP_ROOT}/public",
-	}
-
-	if val, ok := os.LookupEnv("BP_WEB_SERVER_ROOT"); ok {
-		if !filepath.IsAbs(val) {
-			val = fmt.Sprintf("${APP_ROOT}/%s", val)
+	if buildEnvironment.WebServerRoot == "" {
+		buildEnvironment.WebServerRoot = "${APP_ROOT}/public"
+	} else {
+		webServerRoot := buildEnvironment.WebServerRoot
+		if !filepath.IsAbs(webServerRoot) {
+			webServerRoot = fmt.Sprintf("${APP_ROOT}/%s", webServerRoot)
 		}
-		g.logger.Subprocess("Adds configuration to set web server root to '%s'", val)
-		confOptions.WebServerRoot = val
+		g.logger.Subprocess("Adds configuration to set web server root to '%s'", webServerRoot)
+		buildEnvironment.WebServerRoot = webServerRoot
 	}
 
-	confOptions.PushState, err = checkEnvironemntVariableTruthy("BP_WEB_SERVER_ENABLE_PUSH_STATE")
-	if err != nil {
-		return err
-	}
-
-	if confOptions.PushState {
+	if buildEnvironment.WebServerPushStateEnabled {
 		g.logger.Subprocess("Adds configuration that enables push state")
 	}
 
-	confOptions.ForceHTTPS, err = checkEnvironemntVariableTruthy("BP_WEB_SERVER_FORCE_HTTPS")
-	if err != nil {
-		return err
-	}
-
-	if confOptions.ForceHTTPS {
+	if buildEnvironment.WebServerForceHTTPS {
 		g.logger.Subprocess("Adds configuration that forces https redirect")
 	}
 
@@ -94,12 +75,12 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 
 		g.logger.Subprocess("Adds configuration that configured basic authentication from service binding")
 
-		confOptions.HtpasswdPath = filepath.Join(bindings[0].Path, ".htpasswd")
+		buildEnvironment.BasicAuthFile = filepath.Join(bindings[0].Path, ".htpasswd")
 	}
 
 	g.logger.Break()
 
-	err = t.Execute(confFile, confOptions)
+	err = t.Execute(confFile, buildEnvironment)
 	if err != nil {
 		return err
 	}
@@ -109,100 +90,4 @@ func (g GenerateHTTPDConfig) Generate(workingDir, platformPath string) error {
 		return err
 	}
 	return nil
-}
-
-const (
-	httpdConf = `ServerRoot "${SERVER_ROOT}"
-
-ServerName "0.0.0.0"
-
-LoadModule mpm_event_module modules/mod_mpm_event.so
-LoadModule log_config_module modules/mod_log_config.so
-LoadModule mime_module modules/mod_mime.so
-LoadModule dir_module modules/mod_dir.so
-LoadModule authz_core_module modules/mod_authz_core.so
-LoadModule unixd_module modules/mod_unixd.so
-{{if or .PushState .ForceHTTPS -}}
-LoadModule rewrite_module modules/mod_rewrite.so
-{{end}}
-{{- if .PushState -}}
-LoadModule autoindex_module modules/mod_autoindex.so
-{{end}}
-{{- if .HtpasswdPath -}}
-LoadModule authn_core_module modules/mod_authn_core.so
-LoadModule authn_file_module modules/mod_authn_file.so
-LoadModule authz_host_module modules/mod_authz_host.so
-LoadModule authz_user_module modules/mod_authz_user.so
-LoadModule access_compat_module modules/mod_access_compat.so
-LoadModule auth_basic_module modules/mod_auth_basic.so
-{{end}}
-TypesConfig conf/mime.types
-
-PidFile logs/httpd.pid
-
-User nobody
-
-Listen "${PORT}"
-
-DocumentRoot "{{.WebServerRoot}}"
-
-DirectoryIndex index.html
-
-ErrorLog logs/error_log
-
-LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
-
-<Directory />
-  AllowOverride None
-  Require all denied
-</Directory>
-
-<Directory "{{.WebServerRoot}}">
-{{- if .HtpasswdPath}}
-  Require valid-user
-{{- else}}
-  Require all granted
-{{- end}}
-{{- if .PushState}}
-
-  Options +FollowSymLinks
-  IndexIgnore */*
-  RewriteEngine On
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule (.*) index.html
-{{- end}}
-{{- if .ForceHTTPS}}
-
-  RewriteEngine On
-  RewriteCond %{HTTPS} !=on
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-{{- end}}
-{{- if .HtpasswdPath}}
-
-  AuthType Basic
-  AuthName "Authentication Required"
-  AuthUserFile "{{.HtpasswdPath}}"
-
-  Order allow,deny
-  Allow from all
-{{- end}}
-</Directory>
-
-<Files ".ht*">
-  Require all denied
-</Files>`
-)
-
-func checkEnvironemntVariableTruthy(env string) (bool, error) {
-	if reload, ok := os.LookupEnv(env); ok {
-		shouldEnableReload, err := strconv.ParseBool(reload)
-		if err != nil {
-			return false, fmt.Errorf("failed to parse %s value %s: %w", env, reload, err)
-		}
-		return shouldEnableReload, nil
-	}
-	return false, nil
 }

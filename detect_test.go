@@ -36,7 +36,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		parser.ParseVersionCall.Returns.Version = "some-version"
 		parser.ParseVersionCall.Returns.VersionSource = "some-version-source"
 
-		detect = httpd.Detect(parser)
+		detect = httpd.Detect(httpd.BuildEnvironment{}, parser)
 	})
 
 	it.After(func() {
@@ -68,11 +68,12 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			it.Before(func() {
 				parser.ParseVersionCall.Returns.Version = "some-version"
 
-				Expect(os.Setenv("BP_WEB_SERVER", "httpd")).To(Succeed())
-			})
-
-			it.After(func() {
-				Expect(os.Unsetenv("BP_WEB_SERVER")).To(Succeed())
+				detect = httpd.Detect(
+					httpd.BuildEnvironment{
+						WebServer: "httpd",
+					},
+					parser,
+				)
 			})
 
 			it("provides and requires httpd", func() {
@@ -128,11 +129,12 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 		context("and BP_LIVE_RELOAD_ENABLED=true in the build environment", func() {
 			it.Before(func() {
-				os.Setenv("BP_LIVE_RELOAD_ENABLED", "true")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
+				detect = httpd.Detect(
+					httpd.BuildEnvironment{
+						Reload: true,
+					},
+					parser,
+				)
 			})
 
 			it("requires watchexec at launch time", func() {
@@ -163,11 +165,12 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 	context("BP_HTTPD_VERSION is set", func() {
 		it.Before(func() {
-			Expect(os.Setenv("BP_HTTPD_VERSION", "env-var-version")).To(Succeed())
-		})
-
-		it.After(func() {
-			Expect(os.Unsetenv("BP_HTTPD_VERSION")).To(Succeed())
+			detect = httpd.Detect(
+				httpd.BuildEnvironment{
+					HTTPDVersion: "env-var-version",
+				},
+				parser,
+			)
 		})
 
 		it("returns a DetectResult that required specified version of httpd", func() {
@@ -227,23 +230,6 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 			it("returns an error", func() {
 				_, err := detect(packit.DetectContext{WorkingDir: workingDir})
 				Expect(err).To(MatchError("failed to parse version"))
-			})
-		})
-
-		context("when BP_LIVE_RELOAD_ENABLED is set to an invalid value", func() {
-			it.Before(func() {
-				os.Setenv("BP_LIVE_RELOAD_ENABLED", "not-a-bool")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_LIVE_RELOAD_ENABLED")
-			})
-
-			it("returns an error", func() {
-				_, err := detect(packit.DetectContext{
-					WorkingDir: workingDir,
-				})
-				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_LIVE_RELOAD_ENABLED value not-a-bool")))
 			})
 		})
 	})
