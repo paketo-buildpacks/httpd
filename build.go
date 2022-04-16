@@ -1,6 +1,7 @@
 package httpd
 
 import (
+	"os"
 	"path/filepath"
 	"time"
 
@@ -24,7 +25,12 @@ type DependencyService interface {
 	GenerateBillOfMaterials(dependencies ...postal.Dependency) []packit.BOMEntry
 }
 
-func Build(entries EntryResolver, dependencies DependencyService, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
+//go:generate faux --interface GenerateConfig --output fakes/generate_config.go
+type GenerateConfig interface {
+	Generate(workingDir, platformPath string) error
+}
+
+func Build(entries EntryResolver, dependencies DependencyService, generateConfig GenerateConfig, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		logger.Process("Resolving Apache HTTP Server version")
@@ -113,6 +119,13 @@ func Build(entries EntryResolver, dependencies DependencyService, clock chronos.
 					Args:    args,
 					Direct:  true,
 				},
+			}
+		}
+
+		if val, ok := os.LookupEnv("BP_WEB_SERVER"); ok && val == "httpd" {
+			err = generateConfig.Generate(context.WorkingDir, context.Platform.Path)
+			if err != nil {
+				return packit.BuildResult{}, err
 			}
 		}
 

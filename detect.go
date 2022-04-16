@@ -1,13 +1,13 @@
 package httpd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/fs"
 )
 
 const PlanDependencyHTTPD = "httpd"
@@ -33,15 +33,26 @@ func Detect(parser Parser) packit.DetectFunc {
 			},
 		}
 
-		_, err := os.Stat(filepath.Join(context.WorkingDir, "httpd.conf"))
+		var requirements []packit.BuildPlanRequirement
+
+		if val, ok := os.LookupEnv("BP_WEB_SERVER"); ok && val == "httpd" {
+			requirements = append(requirements, packit.BuildPlanRequirement{
+				Name: PlanDependencyHTTPD,
+				Metadata: BuildPlanMetadata{
+					Launch: true,
+				},
+			})
+			plan.Plan.Requires = requirements
+		}
+
+		exists, err := fs.Exists(filepath.Join(context.WorkingDir, "httpd.conf"))
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				return plan, nil
-			}
 			return packit.DetectResult{}, err
 		}
 
-		var requirements []packit.BuildPlanRequirement
+		if !exists {
+			return plan, nil
+		}
 
 		if version, ok := os.LookupEnv("BP_HTTPD_VERSION"); ok {
 			requirements = append(requirements, packit.BuildPlanRequirement{
