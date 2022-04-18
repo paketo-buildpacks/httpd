@@ -110,7 +110,7 @@ func testCaching(t *testing.T, when spec.G, it spec.S) {
 			"",
 			MatchRegexp(`    Selected Apache HTTP Server version \(using \<unknown\>\): 2\.4\.\d+`),
 			"",
-			"  Reusing cached layer /layers/paketo-buildpacks_httpd/httpd",
+			fmt.Sprintf("  Reusing cached layer /layers/%s/httpd", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_")),
 			"",
 			"  Assigning launch processes:",
 			"    web (default): httpd -f /workspace/httpd.conf -k start -DFOREGROUND",
