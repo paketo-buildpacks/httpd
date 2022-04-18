@@ -50,7 +50,7 @@ func testGenerateHTTPDConfig(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		it("create a default httpd config", func() {
-			err := generateHTTPDConfig.Generate(workingDir, "platform")
+			err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -106,16 +106,8 @@ CustomLog logs/access_log common
 
 		context("when BP_WEB_SERVER_ROOT is set", func() {
 			context("when the path given is no absolute", func() {
-				it.Before(func() {
-					os.Setenv("BP_WEB_SERVER_ROOT", "htdocs")
-				})
-
-				it.After(func() {
-					os.Unsetenv("BP_WEB_SERVER_ROOT")
-				})
-
 				it("creates a config with the adjusted DocumentRoot and Directory path", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{WebServerRoot: "htdocs"})
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -171,16 +163,8 @@ CustomLog logs/access_log common
 			})
 
 			context("when the path given is absolute", func() {
-				it.Before(func() {
-					os.Setenv("BP_WEB_SERVER_ROOT", "/absolute/path")
-				})
-
-				it.After(func() {
-					os.Unsetenv("BP_WEB_SERVER_ROOT")
-				})
-
 				it("creates a config with the adjusted DocumentRoot and Directory path", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{WebServerRoot: "/absolute/path"})
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -237,16 +221,8 @@ CustomLog logs/access_log common
 		})
 
 		context("when BP_WEB_SERVER_ENABLE_PUSH_STATE is set", func() {
-			it.Before(func() {
-				os.Setenv("BP_WEB_SERVER_ENABLE_PUSH_STATE", "true")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_WEB_SERVER_ENABLE_PUSH_STATE")
-			})
-
 			it("creates a config with directices that force all routes to index.html", func() {
-				err := generateHTTPDConfig.Generate(workingDir, "platform")
+				err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{WebServerPushStateEnabled: true})
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -311,16 +287,8 @@ CustomLog logs/access_log common
 		})
 
 		context("when BP_WEB_SERVER_FORCE_HTTPS is set", func() {
-			it.Before(func() {
-				os.Setenv("BP_WEB_SERVER_FORCE_HTTPS", "true")
-			})
-
-			it.After(func() {
-				os.Unsetenv("BP_WEB_SERVER_FORCE_HTTPS")
-			})
-
 			it("creates a config with directives that force redirect to https", func() {
-				err := generateHTTPDConfig.Generate(workingDir, "platform")
+				err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{WebServerForceHTTPS: true})
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -396,7 +364,7 @@ CustomLog logs/access_log common
 			})
 
 			it("creates a config with that requires basic auth", func() {
-				err := generateHTTPDConfig.Generate(workingDir, "platform")
+				err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(bindingResolver.ResolveCall.Receives.Typ).To(Equal("htpasswd"))
@@ -475,38 +443,8 @@ CustomLog logs/access_log common
 				})
 
 				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 					Expect(err).To(MatchError(ContainSubstring("permission denied")))
-				})
-			})
-
-			context("when BP_WEB_SERVER_ENABLE_PUSH_STATE is an invalid value", func() {
-				it.Before(func() {
-					os.Setenv("BP_WEB_SERVER_ENABLE_PUSH_STATE", "banana")
-				})
-
-				it.After(func() {
-					os.Unsetenv("BP_WEB_SERVER_ENABLE_PUSH_STATE")
-				})
-
-				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
-					Expect(err).To(MatchError(ContainSubstring(`failed to parse BP_WEB_SERVER_ENABLE_PUSH_STATE value banana: strconv.ParseBool: parsing "banana": invalid syntax`)))
-				})
-			})
-
-			context("when BP_WEB_SERVER_FORCE_HTTPS is an invalid value", func() {
-				it.Before(func() {
-					os.Setenv("BP_WEB_SERVER_FORCE_HTTPS", "banana")
-				})
-
-				it.After(func() {
-					os.Unsetenv("BP_WEB_SERVER_FORCE_HTTPS")
-				})
-
-				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
-					Expect(err).To(MatchError(ContainSubstring(`failed to parse BP_WEB_SERVER_FORCE_HTTPS value banana: strconv.ParseBool: parsing "banana": invalid syntax`)))
 				})
 			})
 
@@ -515,7 +453,7 @@ CustomLog logs/access_log common
 					bindingResolver.ResolveCall.Returns.Error = errors.New("failed to resolve binding")
 				})
 				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 					Expect(err).To(MatchError("failed to resolve binding"))
 				})
 			})
@@ -542,7 +480,7 @@ CustomLog logs/access_log common
 					}
 				})
 				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 					Expect(err).To(MatchError("failed: binding resolver found more than one binding of type 'htpasswd'"))
 				})
 			})
@@ -561,7 +499,7 @@ CustomLog logs/access_log common
 					}
 				})
 				it("returns an error", func() {
-					err := generateHTTPDConfig.Generate(workingDir, "platform")
+					err := generateHTTPDConfig.Generate(workingDir, "platform", httpd.BuildEnvironment{})
 					Expect(err).To(MatchError("failed: binding of type 'htpasswd' does not contain required entry '.htpasswd'"))
 				})
 			})

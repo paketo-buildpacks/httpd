@@ -1,7 +1,6 @@
 package httpd
 
 import (
-	"os"
 	"path/filepath"
 	"time"
 
@@ -27,10 +26,20 @@ type DependencyService interface {
 
 //go:generate faux --interface GenerateConfig --output fakes/generate_config.go
 type GenerateConfig interface {
-	Generate(workingDir, platformPath string) error
+	Generate(workingDir, platformPath string, buildEnvironment BuildEnvironment) error
 }
 
-func Build(entries EntryResolver, dependencies DependencyService, generateConfig GenerateConfig, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
+type BuildEnvironment struct {
+	BasicAuthFile             string
+	HTTPDVersion              string `env:"BP_HTTPD_VERSION"`
+	Reload                    bool   `env:"BP_LIVE_RELOAD_ENABLED"`
+	WebServer                 string `env:"BP_WEB_SERVER"`
+	WebServerForceHTTPS       bool   `env:"BP_WEB_SERVER_FORCE_HTTPS"`
+	WebServerPushStateEnabled bool   `env:"BP_WEB_SERVER_ENABLE_PUSH_STATE"`
+	WebServerRoot             string `env:"BP_WEB_SERVER_ROOT"`
+}
+
+func Build(buildEnvironment BuildEnvironment, entries EntryResolver, dependencies DependencyService, generateConfig GenerateConfig, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		logger.Process("Resolving Apache HTTP Server version")
@@ -93,12 +102,7 @@ func Build(entries EntryResolver, dependencies DependencyService, generateConfig
 			},
 		}
 
-		shouldReload, err := checkLiveReloadEnabled()
-		if err != nil {
-			return packit.BuildResult{}, err
-		}
-
-		if shouldReload {
+		if buildEnvironment.Reload {
 			launchMetadata.Processes = []packit.Process{
 				{
 					Type:    "web",
@@ -122,8 +126,8 @@ func Build(entries EntryResolver, dependencies DependencyService, generateConfig
 			}
 		}
 
-		if val, ok := os.LookupEnv("BP_WEB_SERVER"); ok && val == "httpd" {
-			err = generateConfig.Generate(context.WorkingDir, context.Platform.Path)
+		if buildEnvironment.WebServer == "httpd" {
+			err = generateConfig.Generate(context.WorkingDir, context.Platform.Path, buildEnvironment)
 			if err != nil {
 				return packit.BuildResult{}, err
 			}

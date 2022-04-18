@@ -1,10 +1,7 @@
 package httpd
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/fs"
@@ -23,7 +20,7 @@ type BuildPlanMetadata struct {
 	Launch        bool   `toml:"launch"`
 }
 
-func Detect(parser Parser) packit.DetectFunc {
+func Detect(buildEnvironment BuildEnvironment, parser Parser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
 		plan := packit.DetectResult{
 			Plan: packit.BuildPlan{
@@ -35,7 +32,7 @@ func Detect(parser Parser) packit.DetectFunc {
 
 		var requirements []packit.BuildPlanRequirement
 
-		if val, ok := os.LookupEnv("BP_WEB_SERVER"); ok && val == "httpd" {
+		if buildEnvironment.WebServer == "httpd" {
 			requirements = append(requirements, packit.BuildPlanRequirement{
 				Name: PlanDependencyHTTPD,
 				Metadata: BuildPlanMetadata{
@@ -54,11 +51,11 @@ func Detect(parser Parser) packit.DetectFunc {
 			return plan, nil
 		}
 
-		if version, ok := os.LookupEnv("BP_HTTPD_VERSION"); ok {
+		if buildEnvironment.HTTPDVersion != "" {
 			requirements = append(requirements, packit.BuildPlanRequirement{
 				Name: PlanDependencyHTTPD,
 				Metadata: BuildPlanMetadata{
-					Version:       version,
+					Version:       buildEnvironment.HTTPDVersion,
 					VersionSource: "BP_HTTPD_VERSION",
 					Launch:        true,
 				},
@@ -82,12 +79,7 @@ func Detect(parser Parser) packit.DetectFunc {
 			plan.Plan.Requires = requirements
 		}
 
-		shouldReload, err := checkLiveReloadEnabled()
-		if err != nil {
-			return packit.DetectResult{}, err
-		}
-
-		if shouldReload {
+		if buildEnvironment.Reload {
 			requirements = append(requirements, packit.BuildPlanRequirement{
 				Name: "watchexec",
 				Metadata: map[string]interface{}{
@@ -99,15 +91,4 @@ func Detect(parser Parser) packit.DetectFunc {
 
 		return plan, nil
 	}
-}
-
-func checkLiveReloadEnabled() (bool, error) {
-	if reload, ok := os.LookupEnv("BP_LIVE_RELOAD_ENABLED"); ok {
-		shouldEnableReload, err := strconv.ParseBool(reload)
-		if err != nil {
-			return false, fmt.Errorf("failed to parse BP_LIVE_RELOAD_ENABLED value %s: %w", reload, err)
-		}
-		return shouldEnableReload, nil
-	}
-	return false, nil
 }
