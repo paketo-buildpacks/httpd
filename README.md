@@ -110,7 +110,7 @@ The `BP_WEB_SERVER_ENABLE_PUSH_STATE` variable to enable push state routing func
 BP_WEB_SERVER_ENABLE_PUSH_STATE=true
 ```
 
-### `BP_WEB_SERVE_FORCE_HTTPS`
+### `BP_WEB_SERVER_FORCE_HTTPS`
 The `BP_WEB_SERVE_FORCE_HTTPS` variable allows to enforce HTTPS for server connnections.
 
 ```shell
