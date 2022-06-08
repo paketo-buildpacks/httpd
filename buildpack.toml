@@ -10,19 +10,6 @@ api = "0.6"
   pre-package = "./scripts/build.sh"
 
   [[metadata.dependencies]]
-    cpe = "cpe:2.3:a:apache:http_server:2.4.52:*:*:*:*:*:*:*"
-    id = "httpd"
-    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "ECL-2.0", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
-    name = "Apache HTTP Server"
-    purl = "pkg:generic/httpd@2.4.52?checksum=0127f7dc497e9983e9c51474bed75e45607f2f870a7675a86dc90af6d572f5c9&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.52.tar.bz2"
-    sha256 = "56e0491a141237f3d6728aa64821fc556ab590ff89a24c1aa9fbef016d04c188"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.52.tar.bz2"
-    source_sha256 = "0127f7dc497e9983e9c51474bed75e45607f2f870a7675a86dc90af6d572f5c9"
-    stacks = ["io.buildpacks.stacks.bionic"]
-    uri = "https://deps.paketo.io/httpd/httpd_2.4.52_linux_x64_bionic_56e0491a.tgz"
-    version = "2.4.52"
-
-  [[metadata.dependencies]]
     cpe = "cpe:2.3:a:apache:http_server:2.4.53:*:*:*:*:*:*:*"
     id = "httpd"
     licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "ECL-2.0", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
@@ -34,6 +21,19 @@ api = "0.6"
     stacks = ["io.buildpacks.stacks.bionic"]
     uri = "https://deps.paketo.io/httpd/httpd_2.4.53_linux_x64_bionic_351bd6f0.tgz"
     version = "2.4.53"
+
+  [[metadata.dependencies]]
+    cpe = "cpe:2.3:a:apache:http_server:2.4.54:*:*:*:*:*:*:*"
+    id = "httpd"
+    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "ECL-2.0", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
+    name = "Apache HTTP Server"
+    purl = "pkg:generic/httpd@2.4.54?checksum=eb397feeefccaf254f8d45de3768d9d68e8e73851c49afd5b7176d1ecf80c340&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.54.tar.bz2"
+    sha256 = "6bbd10106e0c24e3545793b7fd2b594aeb8c12ad0673626a8b83418a05d96667"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.54.tar.bz2"
+    source_sha256 = "eb397feeefccaf254f8d45de3768d9d68e8e73851c49afd5b7176d1ecf80c340"
+    stacks = ["io.buildpacks.stacks.bionic"]
+    uri = "https://deps.paketo.io/httpd/httpd_2.4.54_linux_x64_bionic_6bbd1010.tgz"
+    version = "2.4.54"
 
   [[metadata.dependency-constraints]]
     constraint = "*"
