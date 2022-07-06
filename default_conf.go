@@ -27,7 +27,7 @@ LoadModule auth_basic_module modules/mod_auth_basic.so
 {{end}}
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -37,10 +37,10 @@ DocumentRoot "{{.WebServerRoot}}"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None

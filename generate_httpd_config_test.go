@@ -75,7 +75,7 @@ LoadModule unixd_module modules/mod_unixd.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -85,10 +85,10 @@ DocumentRoot "${APP_ROOT}/public"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
@@ -132,7 +132,7 @@ LoadModule unixd_module modules/mod_unixd.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -142,10 +142,10 @@ DocumentRoot "${APP_ROOT}/htdocs"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
@@ -189,7 +189,7 @@ LoadModule unixd_module modules/mod_unixd.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -199,10 +199,10 @@ DocumentRoot "/absolute/path"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
@@ -249,7 +249,7 @@ LoadModule autoindex_module modules/mod_autoindex.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -259,10 +259,10 @@ DocumentRoot "${APP_ROOT}/public"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
@@ -314,7 +314,7 @@ LoadModule rewrite_module modules/mod_rewrite.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -324,10 +324,10 @@ DocumentRoot "${APP_ROOT}/public"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
@@ -395,7 +395,7 @@ LoadModule auth_basic_module modules/mod_auth_basic.so
 
 TypesConfig conf/mime.types
 
-PidFile logs/httpd.pid
+PidFile /tmp/httpd.pid
 
 User nobody
 
@@ -405,10 +405,10 @@ DocumentRoot "${APP_ROOT}/public"
 
 DirectoryIndex index.html
 
-ErrorLog logs/error_log
+ErrorLog /proc/self/fd/2
 
 LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog logs/access_log common
+CustomLog /proc/self/fd/1 common
 
 <Directory />
   AllowOverride None
