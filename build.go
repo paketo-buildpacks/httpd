@@ -8,6 +8,7 @@ import (
 	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
 	"github.com/paketo-buildpacks/packit/v2/postal"
+	"github.com/paketo-buildpacks/packit/v2/sbom"
 	"github.com/paketo-buildpacks/packit/v2/scribe"
 )
 
@@ -29,6 +30,11 @@ type GenerateConfig interface {
 	Generate(workingDir, platformPath string, buildEnvironment BuildEnvironment) error
 }
 
+//go:generate faux --interface SBOMGenerator --output fakes/sbom_generator.go
+type SBOMGenerator interface {
+	GenerateFromDependency(dependency postal.Dependency, dir string) (sbom.SBOM, error)
+}
+
 type BuildEnvironment struct {
 	BasicAuthFile             string
 	HTTPDVersion              string `env:"BP_HTTPD_VERSION"`
@@ -39,7 +45,15 @@ type BuildEnvironment struct {
 	WebServerRoot             string `env:"BP_WEB_SERVER_ROOT"`
 }
 
-func Build(buildEnvironment BuildEnvironment, entries EntryResolver, dependencies DependencyService, generateConfig GenerateConfig, clock chronos.Clock, logger scribe.Emitter) packit.BuildFunc {
+func Build(
+	buildEnvironment BuildEnvironment,
+	entries EntryResolver,
+	dependencies DependencyService,
+	generateConfig GenerateConfig,
+	sbomGenerator SBOMGenerator,
+	clock chronos.Clock,
+	logger scribe.Emitter,
+) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
 		logger.Title("%s %s", context.BuildpackInfo.Name, context.BuildpackInfo.Version)
 		logger.Process("Resolving Apache HTTP Server version")
@@ -176,6 +190,25 @@ func Build(buildEnvironment BuildEnvironment, entries EntryResolver, dependencie
 		logger.EnvironmentVariables(httpdLayer)
 
 		logger.LaunchProcesses(launchMetadata.Processes)
+
+		logger.GeneratingSBOM(httpdLayer.Path)
+		var sbomContent sbom.SBOM
+		duration, err = clock.Measure(func() error {
+			sbomContent, err = sbomGenerator.GenerateFromDependency(dependency, httpdLayer.Path)
+			return err
+		})
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		logger.Action("Completed in %s", duration.Round(time.Millisecond))
+		logger.Break()
+
+		logger.FormattingSBOM(context.BuildpackInfo.SBOMFormats...)
+		httpdLayer.SBOM, err = sbomContent.InFormats(context.BuildpackInfo.SBOMFormats...)
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
 
 		return packit.BuildResult{
 			Layers: []packit.Layer{httpdLayer},

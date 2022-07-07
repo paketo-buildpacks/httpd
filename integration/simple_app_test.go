@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/paketo-buildpacks/occam"
@@ -21,8 +22,10 @@ func testSimpleApp(t *testing.T, context spec.G, it spec.S) {
 		pack   occam.Pack
 		docker occam.Docker
 
-		name      string
-		source    string
+		name    string
+		source  string
+		sbomDir string
+
 		image     occam.Image
 		container occam.Container
 	)
@@ -34,13 +37,19 @@ func testSimpleApp(t *testing.T, context spec.G, it spec.S) {
 		var err error
 		name, err = occam.RandomName()
 		Expect(err).NotTo(HaveOccurred())
+
+		sbomDir, err = os.MkdirTemp("", "sbom")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.Chmod(sbomDir, os.ModePerm)).To(Succeed())
 	})
 
 	it.After(func() {
 		Expect(docker.Container.Remove.Execute(container.ID)).To(Succeed())
 		Expect(docker.Image.Remove.Execute(image.ID)).To(Succeed())
 		Expect(docker.Volume.Remove.Execute(occam.CacheVolumeNames(name))).To(Succeed())
+
 		Expect(os.RemoveAll(source)).To(Succeed())
+		Expect(os.RemoveAll(sbomDir)).To(Succeed())
 	})
 
 	it("serves up staticfile", func() {
@@ -52,6 +61,7 @@ func testSimpleApp(t *testing.T, context spec.G, it spec.S) {
 		image, _, err = pack.Build.
 			WithBuildpacks(httpdBuildpack).
 			WithPullPolicy("never").
+			WithSBOMOutputDir(sbomDir).
 			Execute(name, source)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -63,6 +73,20 @@ func testSimpleApp(t *testing.T, context spec.G, it spec.S) {
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(container).Should(Serve(ContainSubstring("Hello World!")).OnPort(8080))
+
+		contents, err := os.ReadFile(filepath.Join(sbomDir, "sbom", "launch", "sbom.legacy.json"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(contents)).To(ContainSubstring(`"name":"Apache HTTP Server"`))
+
+		// check that all required SBOM files are present
+		Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "httpd", "sbom.cdx.json")).To(BeARegularFile())
+		Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "httpd", "sbom.spdx.json")).To(BeARegularFile())
+		Expect(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "httpd", "sbom.syft.json")).To(BeARegularFile())
+
+		// check an SBOM file to make sure it has an entry
+		contents, err = os.ReadFile(filepath.Join(sbomDir, "sbom", "launch", strings.ReplaceAll(buildpackInfo.Buildpack.ID, "/", "_"), "httpd", "sbom.cdx.json"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(contents)).To(ContainSubstring(`"name": "Apache HTTP Server"`))
 	})
 
 	context("when BP_LIVE_RELOAD_ENABLED=true", func() {
