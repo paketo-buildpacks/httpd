@@ -11,6 +11,7 @@ import (
 	"github.com/paketo-buildpacks/httpd/fakes"
 	"github.com/paketo-buildpacks/packit/v2"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
+	"github.com/paketo-buildpacks/packit/v2/sbom"
 
 	//nolint Ignore SA1019, informed usage of deprecated package
 	"github.com/paketo-buildpacks/packit/v2/paketosbom"
@@ -32,7 +33,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		entryResolver     *fakes.EntryResolver
 		dependencyService *fakes.DependencyService
 		generateConfig    *fakes.GenerateConfig
-		buffer            *bytes.Buffer
+		sbomGenerator     *fakes.SBOMGenerator
+
+		buffer *bytes.Buffer
 
 		build packit.BuildFunc
 	)
@@ -85,9 +88,12 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		generateConfig = &fakes.GenerateConfig{}
 
+		sbomGenerator = &fakes.SBOMGenerator{}
+		sbomGenerator.GenerateFromDependencyCall.Returns.SBOM = sbom.SBOM{}
+
 		buffer = bytes.NewBuffer(nil)
 
-		build = httpd.Build(httpd.BuildEnvironment{}, entryResolver, dependencyService, generateConfig, chronos.DefaultClock, scribe.NewEmitter(buffer))
+		build = httpd.Build(httpd.BuildEnvironment{}, entryResolver, dependencyService, generateConfig, sbomGenerator, chronos.DefaultClock, scribe.NewEmitter(buffer))
 	})
 
 	it.After(func() {
@@ -99,8 +105,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	it("builds httpd", func() {
 		result, err := build(packit.BuildContext{
 			BuildpackInfo: packit.BuildpackInfo{
-				Name:    "Some Buildpack",
-				Version: "1.2.3",
+				Name:        "Some Buildpack",
+				Version:     "1.2.3",
+				SBOMFormats: []string{sbom.CycloneDXFormat, sbom.SPDXFormat},
 			},
 			WorkingDir: workingDir,
 			Layers:     packit.Layers{Path: layersDir},
@@ -168,6 +175,17 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			},
 		}))
 
+		Expect(layer.SBOM.Formats()).To(Equal([]packit.SBOMFormat{
+			{
+				Extension: sbom.Format(sbom.CycloneDXFormat).Extension(),
+				Content:   sbom.NewFormattedReader(sbom.SBOM{}, sbom.CycloneDXFormat),
+			},
+			{
+				Extension: sbom.Format(sbom.SPDXFormat).Extension(),
+				Content:   sbom.NewFormattedReader(sbom.SBOM{}, sbom.SPDXFormat),
+			},
+		}))
+
 		Expect(dependencyService.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbPath, "buildpack.toml")))
 		Expect(dependencyService.ResolveCall.Receives.Name).To(Equal("httpd"))
 		Expect(dependencyService.ResolveCall.Receives.Version).To(Equal("some-env-var-version"))
@@ -187,6 +205,17 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		Expect(dependencyService.DeliverCall.Receives.PlatformPath).To(Equal("platform"))
 
 		Expect(generateConfig.GenerateCall.CallCount).To(Equal(0))
+
+		Expect(sbomGenerator.GenerateFromDependencyCall.Receives.Dependency).To(Equal(postal.Dependency{
+			ID:           "httpd",
+			SHA256:       "some-sha",
+			Source:       "some-source",
+			SourceSHA256: "some-source-sha",
+			Stacks:       []string{"some-stack"},
+			URI:          "some-uri",
+			Version:      "some-env-var-version",
+		}))
+		Expect(sbomGenerator.GenerateFromDependencyCall.Receives.Dir).To(Equal(filepath.Join(layersDir, "httpd")))
 	})
 
 	context("when the entry contains a version constraint", func() {
@@ -359,6 +388,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				entryResolver,
 				dependencyService,
 				generateConfig,
+				sbomGenerator,
 				chronos.DefaultClock,
 				scribe.NewEmitter(buffer),
 			)
@@ -482,6 +512,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				entryResolver,
 				dependencyService,
 				generateConfig,
+				sbomGenerator,
 				chronos.DefaultClock,
 				scribe.NewEmitter(buffer),
 			)
@@ -588,6 +619,7 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					entryResolver,
 					dependencyService,
 					generateConfig,
+					sbomGenerator,
 					chronos.DefaultClock,
 					scribe.NewEmitter(buffer),
 				)
@@ -615,6 +647,43 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 					CNBPath:    cnbPath,
 				})
 				Expect(err).To(MatchError("failed to install dependency"))
+			})
+		})
+
+		context("when generating the SBOM returns an error", func() {
+			it.Before(func() {
+				sbomGenerator.GenerateFromDependencyCall.Returns.Error = errors.New("failed to generate SBOM")
+			})
+
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					CNBPath: cnbPath,
+					Plan: packit.BuildpackPlan{
+						Entries: []packit.BuildpackPlanEntry{
+							{Name: "httpd"},
+						},
+					},
+					Layers: packit.Layers{Path: layersDir},
+					Stack:  "some-stack",
+				})
+				Expect(err).To(MatchError(ContainSubstring("failed to generate SBOM")))
+			})
+		})
+
+		context("when formatting the SBOM returns an error", func() {
+			it("returns an error", func() {
+				_, err := build(packit.BuildContext{
+					BuildpackInfo: packit.BuildpackInfo{SBOMFormats: []string{"random-format"}},
+					CNBPath:       cnbPath,
+					Plan: packit.BuildpackPlan{
+						Entries: []packit.BuildpackPlanEntry{
+							{Name: "httpd"},
+						},
+					},
+					Layers: packit.Layers{Path: layersDir},
+					Stack:  "some-stack",
+				})
+				Expect(err).To(MatchError("unsupported SBOM format: 'random-format'"))
 			})
 		})
 	})

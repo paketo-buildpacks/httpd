@@ -1,9 +1,12 @@
-api = "0.6"
+api = "0.8"
 
 [buildpack]
+  description = "A buildpack for installing the appropriate Apache HTTPD server"
   homepage = "https://github.com/paketo-buildpacks/httpd"
   id = "paketo-buildpacks/httpd"
+  keywords = ["apache", "httpd", "server", "distribution"]
   name = "Paketo Apache HTTP Server Buildpack"
+  sbom-formats = ["application/vnd.cyclonedx+json", "application/spdx+json", "application/vnd.syft+json"]
 
 [metadata]
   include-files = ["bin/build", "bin/detect", "bin/run", "buildpack.toml"]
