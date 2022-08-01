@@ -21,7 +21,7 @@ api = "0.8"
     sha256 = "351bd6f0a28c013ab6b17993cc96fb6a3a2fb87bca8ed2477a1c32efec95cb7f"
     source = "http://archive.apache.org/dist/httpd/httpd-2.4.53.tar.bz2"
     source_sha256 = "d0bbd1121a57b5f2a6ff92d7b96f8050c5a45d3f14db118f64979d525858db63"
-    stacks = ["io.buildpacks.stacks.bionic"]
+    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
     uri = "https://deps.paketo.io/httpd/httpd_2.4.53_linux_x64_bionic_351bd6f0.tgz"
     version = "2.4.53"
 
@@ -34,7 +34,7 @@ api = "0.8"
     sha256 = "6bbd10106e0c24e3545793b7fd2b594aeb8c12ad0673626a8b83418a05d96667"
     source = "http://archive.apache.org/dist/httpd/httpd-2.4.54.tar.bz2"
     source_sha256 = "eb397feeefccaf254f8d45de3768d9d68e8e73851c49afd5b7176d1ecf80c340"
-    stacks = ["io.buildpacks.stacks.bionic"]
+    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
     uri = "https://deps.paketo.io/httpd/httpd_2.4.54_linux_x64_bionic_6bbd1010.tgz"
     version = "2.4.54"
 
@@ -45,4 +45,8 @@ api = "0.8"
 
 [[stacks]]
   id = "io.buildpacks.stacks.bionic"
+  mixins = ["libexpat1"]
+
+[[stacks]]
+  id = "io.buildpacks.stacks.jammy"
   mixins = ["libexpat1"]
