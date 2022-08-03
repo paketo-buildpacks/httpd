@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/caarlos0/env/v6 v6.9.3
 	github.com/onsi/gomega v1.20.0
-	github.com/paketo-buildpacks/occam v0.11.0
+	github.com/paketo-buildpacks/occam v0.12.0
 	github.com/paketo-buildpacks/packit/v2 v2.3.1
 	github.com/sclevine/spec v1.4.0
 	gopkg.in/yaml.v2 v2.4.0
