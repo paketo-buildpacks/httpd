@@ -5,7 +5,7 @@ api = "0.8"
   homepage = "https://github.com/paketo-buildpacks/httpd"
   id = "paketo-buildpacks/httpd"
   keywords = ["apache", "httpd", "server", "distribution"]
-  name = "Paketo Apache HTTP Server Buildpack"
+  name = "Paketo Buildpack for Apache HTTP Server"
   sbom-formats = ["application/vnd.cyclonedx+json", "application/spdx+json", "application/vnd.syft+json"]
 
 [metadata]
