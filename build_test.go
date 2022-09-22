@@ -65,9 +65,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 		dependencyService = &fakes.DependencyService{}
 		dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
 			ID:           "httpd",
-			SHA256:       "some-sha",
+			SHA256:       "some-sha", //nolint:staticcheck
 			Source:       "some-source",
-			SourceSHA256: "some-source-sha",
+			SourceSHA256: "some-source-sha", //nolint:staticcheck
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
 			Version:      "some-env-var-version",
@@ -193,9 +193,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(dependencyService.DeliverCall.Receives.Dependency).To(Equal(postal.Dependency{
 			ID:           "httpd",
-			SHA256:       "some-sha",
+			SHA256:       "some-sha", //nolint:staticcheck
 			Source:       "some-source",
-			SourceSHA256: "some-source-sha",
+			SourceSHA256: "some-source-sha", //nolint:staticcheck
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
 			Version:      "some-env-var-version",
@@ -208,9 +208,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(sbomGenerator.GenerateFromDependencyCall.Receives.Dependency).To(Equal(postal.Dependency{
 			ID:           "httpd",
-			SHA256:       "some-sha",
+			SHA256:       "some-sha", //nolint:staticcheck
 			Source:       "some-source",
-			SourceSHA256: "some-source-sha",
+			SourceSHA256: "some-source-sha", //nolint:staticcheck
 			Stacks:       []string{"some-stack"},
 			URI:          "some-uri",
 			Version:      "some-env-var-version",
@@ -231,9 +231,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
 				ID:           "httpd",
-				SHA256:       "some-sha",
+				SHA256:       "some-sha", //nolint:staticcheck
 				Source:       "some-source",
-				SourceSHA256: "some-source-sha",
+				SourceSHA256: "some-source-sha", //nolint:staticcheck
 				Stacks:       []string{"some-stack"},
 				URI:          "some-uri",
 				Version:      "2.4.41",
@@ -319,9 +319,9 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 
 			Expect(dependencyService.DeliverCall.Receives.Dependency).To(Equal(postal.Dependency{
 				ID:           "httpd",
-				SHA256:       "some-sha",
+				SHA256:       "some-sha", //nolint:staticcheck
 				Source:       "some-source",
-				SourceSHA256: "some-source-sha",
+				SourceSHA256: "some-source-sha", //nolint:staticcheck
 				Stacks:       []string{"some-stack"},
 				URI:          "some-uri",
 				Version:      "2.4.41",

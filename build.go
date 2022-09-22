@@ -148,7 +148,7 @@ func Build(
 		}
 
 		cachedSHA, ok := httpdLayer.Metadata["cache_sha"].(string)
-		if ok && cachedSHA == dependency.SHA256 {
+		if ok && cachedSHA == dependency.SHA256 { //nolint:staticcheck
 			logger.Process("Reusing cached layer %s", httpdLayer.Path)
 			logger.Break()
 
@@ -181,7 +181,7 @@ func Build(
 		logger.Break()
 
 		httpdLayer.Metadata = map[string]interface{}{
-			"cache_sha": dependency.SHA256,
+			"cache_sha": dependency.SHA256, //nolint:staticcheck
 		}
 
 		httpdLayer.LaunchEnv.Override("APP_ROOT", context.WorkingDir)
