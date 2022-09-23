@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+extract_tarball() {
+  rm -rf httpd
+  mkdir httpd
+  tar -xf "/tarball_path/httpd-${version}-bionic.tgz" -C httpd/
+}
+
+set_ld_library_path() {
+  export LD_LIBRARY_PATH="$PWD/httpd/lib:${LD_LIBRARY_PATH:-}"
+}
+
+check_version() {
+  actual_version="$(./httpd/bin/httpd -v | head -n1 | cut -d' ' -f3 | cut -d'/' -f2)"
+  if [[ "${actual_version}" != "${version}" ]]; then
+    echo "Version ${actual_version} does not match expected version ${version}"
+    exit 1
+  fi
+}
+
+check_server() {
+  SERVER_ROOT="$PWD/httpd" \
+    APP_ROOT="/fixtures" \
+    PORT=8080 \
+    ./httpd/bin/httpd -f "/fixtures/httpd.conf" -k start
+
+  set +e
+
+  succeeded=0
+  for _ in {1..5}; do
+    response="$(curl -s http://localhost:8080)"
+    if [[ $response == *"Sample httpd app"* ]]; then
+      succeeded=1
+      break
+    fi
+    sleep 1
+  done
+
+  kill "$(cat httpd/logs/httpd.pid)"
+
+  set -e
+
+  if [[ ${succeeded} -eq 0 ]]; then
+    echo "Failed to curl server"
+    exit 1
+  fi
+}
+
+main() {
+  local version
+  version=
+
+  while test $# -gt 0; do
+    case $1 in
+      --version)
+        version=$2
+        shift
+        ;;
+      *)
+        echo >&2 "Invalid argument: $1"
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "${version}" == "" ]]; then
+    echo "Version is required"
+    exit 1
+  fi
+
+  extract_tarball
+  set_ld_library_path
+  check_version
+  check_server
+
+  echo "All HTTPD bionic dependency tests passed!"
+}
+
+main "${@:-}"

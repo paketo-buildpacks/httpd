@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
+
+function main() {
+  local version output_dir target httpd_dir dest_dir
+  version=""
+  output_dir=""
+  target=""
+
+  while [ "${#}" != 0 ]; do
+    case "${1}" in
+      --version)
+        version="${2}"
+        shift 2
+        ;;
+
+      --outputDir)
+        output_dir="${2}"
+        shift 2
+        ;;
+
+      --target)
+        target="${2}"
+        shift 2
+        ;;
+
+      "")
+        shift
+        ;;
+
+      *)
+        echo "unknown argument \"${1}\""
+        exit 1
+    esac
+  done
+
+  if [[ "${version}" == "" ]]; then
+    echo "--version is required"
+    exit 1
+  fi
+
+  if [[ "${output_dir}" == "" ]]; then
+    echo "--outputDir is required"
+    exit 1
+  fi
+
+  if [[ "${target}" == "" ]]; then
+    echo "--target is required"
+    exit 1
+  fi
+
+  archives_dir="$(mktemp -d)"
+
+  install_dir="$(mktemp -d)"
+  apr_dir="${install_dir}/apr"
+  apr_iconv_dir="${install_dir}/apr-iconv"
+  apr_util_dir="${install_dir}/apr-util"
+  httpd_dir="${install_dir}/httpd"
+  
+  pushd "${archives_dir}"
+    echo "Downloading APR dependency"
+
+    curl "https://apache.osuosl.org/apr/apr-1.7.0.tar.gz" \
+      --silent \
+      --output "apr-1.7.0.tar.gz"
+
+    tar --extract \
+      --file "apr-1.7.0.tar.gz"
+
+    pushd "apr-1.7.0"
+      echo "Running APR's configure script"
+      mkdir "${apr_dir}"
+      ./configure --prefix="${apr_dir}"
+
+      echo "Running make and make install for APR"
+      make
+      make install
+
+      echo "Running libtool"
+      "${apr_dir}/build-1/libtool" --finish "${apr_dir}/lib"
+      # /dep-install/apr//build-1/libtool --finish /dep-install/apr/lib
+    popd
+
+    echo "Downloading APR Iconf dependency"
+
+    curl "https://apache.osuosl.org/apr/apr-iconv-1.2.2.tar.gz" \
+      --silent \
+      --output "apr-iconv-1.2.2.tar.gz"
+
+    tar --extract \
+      --file "apr-iconv-1.2.2.tar.gz"
+
+    pushd "apr-iconv-1.2.2"
+      echo "Running APR Iconv's configure script"
+      mkdir "${apr_iconv_dir}"
+      ./configure --prefix="${apr_iconv_dir}" --with-apr="${apr_dir}/bin/apr-1-config"
+
+      echo "Running make and make install for APR"
+      make
+      make install      
+    popd
+
+    echo "Downloading APR Util dependency"
+
+    curl "https://apache.osuosl.org/apr/apr-util-1.6.1.tar.gz" \
+      --silent \
+      --output "apr-util-1.6.1.tar.gz"
+    
+    tar --extract \
+      --file "apr-util-1.6.1.tar.gz"
+
+    pushd "apr-util-1.6.1"
+      echo "Running APR Util's configure script"
+      mkdir "${apr_util_dir}"
+      ./configure \
+        --prefix="${apr_util_dir}" \
+        --with-apr="${apr_dir}" \
+        --with-iconv="${apr_iconv_dir}" \
+        --with-crypto \
+        --with-openssl \
+        --with-mysql \
+        --with-pgsql \
+        --with-gdbm \
+        --with-ldap
+
+      echo "Running make and make install for APR Util"
+      make
+      make install  
+    popd
+
+    echo "Downloading HTTPD dependency"
+
+    curl "http://archive.apache.org/dist/httpd/httpd-${version}.tar.bz2" \
+      --silent \
+      --output "httpd-${version}.tar"
+
+    tar --extract \
+      --file "httpd-${version}.tar"
+    
+    pushd "httpd-${version}"
+      echo "Running HTTPD's ./configure script"
+      mkdir "${httpd_dir}"
+      ./configure \
+        --prefix="${httpd_dir}" \
+        --with-apr="${apr_dir}" \
+        --with-apr-util="${apr_util_dir}" \
+        --with-ssl=/usr/lib/x86_64-linux-gnu \
+        --enable-mpms-shared='worker event' \
+        --enable-mods-shared='reallyall' \
+        --disable-isapi \
+        --disable-dav \
+        --disable-dialup
+      
+      echo "Running make and make install for APR Util"
+      make
+      make install  
+    popd
+  popd
+
+  pushd "${httpd_dir}"
+    rm -rf cgi-bin/ error/ icons/ include/ man/ manual/ htdocs/
+    rm -rf conf/extra/* conf/httpd.conf conf/httpd.conf.bak conf/magic conf/original
+    mkdir -p lib
+    cp "${apr_dir}/lib/libapr-1.so.0" ./lib
+    cp "${apr_util_dir}/lib/libaprutil-1.so.0" ./lib
+    mkdir -p "./lib/apr-util-1"
+    cp "${apr_util_dir}/lib/apr-util-1/"*.so ./lib/apr-util-1/
+    mkdir -p "./lib/iconv"
+    cp "${apr_iconv_dir}/lib/libapriconv-1.so.0" ./lib
+    cp "${apr_iconv_dir}/lib/iconv/"*.so ./lib/iconv/
+    cp /usr/lib/x86_64-linux-gnu/libcjose.so* ./lib/
+    cp /usr/lib/x86_64-linux-gnu/libhiredis.so* ./lib/
+    cp /usr/lib/x86_64-linux-gnu/libjansson.so* ./lib/
+
+    tar zcvf "${output_dir}/temp.tgz" .
+  popd
+
+  pushd "${output_dir}"
+
+    SHA256=$(sha256sum temp.tgz)
+    SHA256="${SHA256:0:64}"
+
+    OUTPUT_TARBALL_NAME="httpd-${version}-${target}.tgz"
+    OUTPUT_SHAFILE_NAME="httpd-${version}-${target}.tgz.sha256"
+
+    echo "Building tarball ${OUTPUT_TARBALL_NAME}"
+
+    mv temp.tgz "${OUTPUT_TARBALL_NAME}"
+
+    echo "Creating sha256 file for ${OUTPUT_TARBALL_NAME}"
+    echo "${SHA256}" > "${OUTPUT_SHAFILE_NAME}"
+  popd
+}
+
+main "${@:-}"
