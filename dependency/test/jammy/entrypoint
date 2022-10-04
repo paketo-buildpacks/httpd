@@ -5,7 +5,7 @@ set -euo pipefail
 extract_tarball() {
   rm -rf httpd
   mkdir httpd
-  tar -xf "/tarball_path/httpd-${version}-jammy.tgz" -C httpd/
+  tar -xf "/tarball_path/httpd_${version}_linux_x64_jammy_"*".tgz" -C httpd/
 }
 
 set_ld_library_path() {

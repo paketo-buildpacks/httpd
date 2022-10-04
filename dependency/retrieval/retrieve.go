@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -21,12 +20,7 @@ import (
 	"github.com/joshuatcasey/libdependency/versionology"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/vacation"
-	"golang.org/x/crypto/openpgp"
 )
-
-type GithubTagReponse struct {
-	Name string `json:"name"`
-}
 
 type HttpdMetadata struct {
 	SemverVersion *semver.Version
@@ -148,7 +142,6 @@ func getHttpdVersions() (versionology.VersionFetcherArray, error) {
 
 func generateMetadata(hasVersion versionology.VersionFetcher) ([]versionology.Dependency, error) {
 	httpdVersion := hasVersion.Version().String()
-	// httpdURL := fmt.Sprintf("http://archive.apache.org/dist/httpd/httpd-%s.tar.bz2", httpdVersion)
 
 	releases, err := getReleases(httpdVersion)
 	release := releases[0]
@@ -388,35 +381,6 @@ func verifySHA1(path, expectedSHA string) error {
 	}
 
 	return nil
-}
-
-func verifyASC(asc, path string, pgpKeys ...string) error {
-	if len(pgpKeys) == 0 {
-		return errors.New("no pgp keys provided")
-	}
-
-	file, err := os.Open(path)
-	if err != nil {
-		return fmt.Errorf("could not open file: %w", err)
-	}
-	defer file.Close()
-
-	for _, pgpKey := range pgpKeys {
-		keyring, err := openpgp.ReadArmoredKeyRing(strings.NewReader(pgpKey))
-		if err != nil {
-			return fmt.Errorf("could not read armored key ring: %w", err)
-		}
-
-		_, err = openpgp.CheckArmoredDetachedSignature(keyring, file, strings.NewReader(asc))
-		if err != nil {
-			log.Printf("failed to check signature: %s", err.Error())
-			continue
-		}
-		log.Printf("found valid pgp key")
-		return nil
-	}
-
-	return errors.New("no valid pgp keys provided")
 }
 
 func decompress(artifact io.Reader, destination string) error {
