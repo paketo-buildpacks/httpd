@@ -4,10 +4,7 @@ set -eu
 set -o pipefail
 
 function main() {
-  local version output_dir target httpd_dir dest_dir
-  version=""
-  output_dir=""
-  target=""
+  local version output_dir target httpd_dir
 
   while [ "${#}" != 0 ]; do
     case "${1}" in
@@ -36,17 +33,17 @@ function main() {
     esac
   done
 
-  if [[ "${version}" == "" ]]; then
+  if [[ -z "${version:-}" ]]; then
     echo "--version is required"
     exit 1
   fi
 
-  if [[ "${output_dir}" == "" ]]; then
+  if [[ -z "${output_dir:-}" ]]; then
     echo "--outputDir is required"
     exit 1
   fi
 
-  if [[ "${target}" == "" ]]; then
+  if [[ -z "${target:-}" ]]; then
     echo "--target is required"
     exit 1
   fi
@@ -58,7 +55,7 @@ function main() {
   apr_iconv_dir="${install_dir}/apr-iconv"
   apr_util_dir="${install_dir}/apr-util"
   httpd_dir="${install_dir}/httpd"
-  
+
   pushd "${archives_dir}"
     echo "Downloading APR dependency"
 
@@ -80,7 +77,6 @@ function main() {
 
       echo "Running libtool"
       "${apr_dir}/build-1/libtool" --finish "${apr_dir}/lib"
-      # /dep-install/apr//build-1/libtool --finish /dep-install/apr/lib
     popd
 
     echo "Downloading APR Iconf dependency"
@@ -99,7 +95,7 @@ function main() {
 
       echo "Running make and make install for APR"
       make
-      make install      
+      make install
     popd
 
     echo "Downloading APR Util dependency"
@@ -107,7 +103,7 @@ function main() {
     curl "https://apache.osuosl.org/apr/apr-util-1.6.1.tar.gz" \
       --silent \
       --output "apr-util-1.6.1.tar.gz"
-    
+
     tar --extract \
       --file "apr-util-1.6.1.tar.gz"
 
@@ -127,7 +123,7 @@ function main() {
 
       echo "Running make and make install for APR Util"
       make
-      make install  
+      make install
     popd
 
     echo "Downloading HTTPD dependency"
@@ -138,7 +134,7 @@ function main() {
 
     tar --extract \
       --file "httpd-${version}.tar"
-    
+
     pushd "httpd-${version}"
       echo "Running HTTPD's ./configure script"
       mkdir "${httpd_dir}"
@@ -152,10 +148,10 @@ function main() {
         --disable-isapi \
         --disable-dav \
         --disable-dialup
-      
+
       echo "Running make and make install for APR Util"
       make
-      make install  
+      make install
     popd
   popd
 
@@ -182,14 +178,14 @@ function main() {
     SHA256=$(sha256sum temp.tgz)
     SHA256="${SHA256:0:64}"
 
-    OUTPUT_TARBALL_NAME="httpd-${version}-${target}.tgz"
-    OUTPUT_SHAFILE_NAME="httpd-${version}-${target}.tgz.sha256"
+    OUTPUT_TARBALL_NAME="httpd_${version}_linux_x64_${target}_${SHA256:0:8}.tgz"
+    OUTPUT_SHAFILE_NAME="httpd_${version}_linux_x64_${target}_${SHA256:0:8}.tgz.checksum"
 
     echo "Building tarball ${OUTPUT_TARBALL_NAME}"
 
     mv temp.tgz "${OUTPUT_TARBALL_NAME}"
 
-    echo "Creating sha256 file for ${OUTPUT_TARBALL_NAME}"
+    echo "Creating checksum file for ${OUTPUT_TARBALL_NAME}"
     echo "${SHA256}" > "${OUTPUT_SHAFILE_NAME}"
   popd
 }
