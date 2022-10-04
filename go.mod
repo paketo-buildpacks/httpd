@@ -8,7 +8,6 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/Masterminds/semver v1.5.0
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/anchore/syft v0.58.0 // indirect
 	github.com/bmatcuk/doublestar/v4 v4.2.0 // indirect
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/docker/cli v20.10.18+incompatible // indirect
@@ -27,7 +26,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0-rc1 // indirect
 	github.com/opencontainers/runc v1.1.4 // indirect
 	github.com/paketo-buildpacks/occam v0.13.2
-	github.com/paketo-buildpacks/packit/v2 v2.6.0
+	github.com/paketo-buildpacks/packit/v2 v2.6.1
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect

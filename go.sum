@@ -436,7 +436,6 @@ github.com/anchore/stereoscope v0.0.0-20220921141924-56552770e555 h1:5HwWsccgInN
 github.com/anchore/stereoscope v0.0.0-20220921141924-56552770e555/go.mod h1:QjCxOPxjv7RqJm0pMIvB7P3rKHn7/uMBU7mnmM7ijTU=
 github.com/anchore/syft v0.38.0/go.mod h1:mFaFcz22KWOHo/3SOkcpNJBRFe0IivyDXyA6hGUGbWk=
 github.com/anchore/syft v0.56.0/go.mod h1:pAHjZvHC+ZuEUPYJ9HgTs81niKkrBqKvLEz2LdVE+AU=
-github.com/anchore/syft v0.57.0/go.mod h1:h9TSd7uOBDqEzDybjEE9/dYQ0H9OYfgXerp6WKDgAn0=
 github.com/anchore/syft v0.58.0 h1:hh5k6Bkda6Q4AbT/5106FmDKB3ksc83AuELYw2hPo3k=
 github.com/anchore/syft v0.58.0/go.mod h1:EtZQE3/Twdd5HEKyIsm++v/Z3Kcw1uw5Yr2rulT8LTY=
 github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883/go.mod h1:rCTlJbsFo29Kk6CurOXKm700vrz8f0KW0JNfpkRJY/8=
@@ -492,7 +491,6 @@ github.com/aws/aws-sdk-go v1.44.22/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4
 github.com/aws/aws-sdk-go v1.44.37/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go v1.44.76/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go v1.44.80/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
-github.com/aws/aws-sdk-go v1.44.93/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go v1.44.96/go.mod h1:y4AeaBuwd2Lk+GepC1E9v0qOiTws0MIWAX4oIKwKHZo=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.7.1/go.mod h1:L5LuPC1ZgDr2xQS7AmIec/Jlc7O/Y1u2KxJyNVab250=
@@ -794,7 +792,6 @@ github.com/coreos/go-iptables v0.5.0/go.mod h1:/mVI274lEDI2ns62jHCDnCyBF9Iwsmeka
 github.com/coreos/go-iptables v0.6.0/go.mod h1:Qe8Bv2Xik5FyTXwgIbLAnv2sWSBmvWdFETJConOQ//Q=
 github.com/coreos/go-oidc v2.1.0+incompatible/go.mod h1:CgnwVTmzoESiwO9qyAFEMiHoZ1nMCKZlZ9V6mm3/LKc=
 github.com/coreos/go-oidc/v3 v3.2.0/go.mod h1:rEJ/idjfUyfkBit1eI1fvyr+64/g9dcKpAm8MJMesvo=
-github.com/coreos/go-oidc/v3 v3.3.0/go.mod h1:eHUXhZtXPQLgEaDrOVTgwbgmz1xGOkJNye6h3zkD2Pw=
 github.com/coreos/go-oidc/v3 v3.4.0/go.mod h1:eHUXhZtXPQLgEaDrOVTgwbgmz1xGOkJNye6h3zkD2Pw=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
 github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
@@ -1984,8 +1981,8 @@ github.com/paketo-buildpacks/occam v0.13.2 h1:4hgDCVx4iHSfk3qDpaFzja94TOJ0tOJ6hO
 github.com/paketo-buildpacks/occam v0.13.2/go.mod h1:/kuPXK3OXdTmVbZrd6OWmC4/dwrmus6l+MTwhcDbD5A=
 github.com/paketo-buildpacks/packit/v2 v2.1.0/go.mod h1:Ud1X7f9O6e4eGPZlY3pj0jnSa9oDK2L/ghvjmarTLSA=
 github.com/paketo-buildpacks/packit/v2 v2.5.0/go.mod h1:g7/lP1rfE6d1x2X52EOP03T5mrQatZFOPFUekayYV0o=
-github.com/paketo-buildpacks/packit/v2 v2.6.0 h1:3kCnM7KxH+FX35gHCnKN0VbUBa9ua0aVePkIi/xMtMI=
-github.com/paketo-buildpacks/packit/v2 v2.6.0/go.mod h1:NM4+8Z9HOGodOVHXXVAWz47i7Y6gmJOISjsalrOwzPs=
+github.com/paketo-buildpacks/packit/v2 v2.6.1 h1:LOD/16mUnj/ZAf6bg5DiUgmmqcUfaJdC/YFLeq2RSUg=
+github.com/paketo-buildpacks/packit/v2 v2.6.1/go.mod h1:iBArWOfC5xZQF01o+zwnVKS+/hUBuFG+O1jCvzqBujs=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pascaldekloe/goe v0.1.0/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
 github.com/pborman/uuid v1.2.0/go.mod h1:X/NO0urCmaxf9VXbdlT7C2Yzkj2IKimNn4k+gtPdI/k=
@@ -2184,14 +2181,12 @@ github.com/shurcooL/go v0.0.0-20180423040247-9e1955d9fb6e/go.mod h1:TDJrrUr11Vxr
 github.com/shurcooL/go-goon v0.0.0-20170922171312-37c2f522c041/go.mod h1:N5mDOmsrJOB+vfqUK+7DmDyjhSLIIBnXo9lvZJj3MWQ=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sigstore/cosign v1.11.1/go.mod h1:PURIOXUUu1KmXTJ1x11DHH/X9CyaoYpa9AxRphagu+s=
-github.com/sigstore/cosign v1.12.0/go.mod h1:gcWqjoMm2jhu5knf9HMWq5AS8CcnOeYXuamMUBj0Arg=
 github.com/sigstore/cosign v1.12.1/go.mod h1:8sOfWG332VGdFJBud/LPgwC/HGx6eoKr8LIFRDKcUk0=
 github.com/sigstore/fulcio v0.5.3/go.mod h1:4yzMqOao6r9Nul1Dgt4LL7loKdkkgbDemLYrXUuAc+Y=
 github.com/sigstore/rekor v0.11.0/go.mod h1:xEfHnfiQJ/yJVCz41/OglUrDID71gICzixJjYFrQeN0=
 github.com/sigstore/rekor v0.12.1-0.20220915152154-4bb6f441c1b2/go.mod h1:C/jZ3EZywl/Kew48fGMWQoh+1LxOMk0BkP3DHmtB+8M=
 github.com/sigstore/sigstore v1.2.1-0.20220526001230-8dc4fa90a468/go.mod h1:xAQdMn1pZ7FcOtHU6chqIsvVKt9KGb4mJZljPQUdcpA=
 github.com/sigstore/sigstore v1.4.0/go.mod h1:z3kt1jm2A39M+g7emkQ8jdErL/haCMEjkNxvqTf41/k=
-github.com/sigstore/sigstore v1.4.1-0.20220908204944-ec922cf4f1c2/go.mod h1:d0zef5dbdOvwBwQ0NlqO8pZuiFe4VtW12+ful2i1Nbw=
 github.com/sigstore/sigstore v1.4.1/go.mod h1:4+s4d6oTDdoQkf5lwpZBoOlWWV+hXhur1my9WdN5PjU=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.0.6/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
