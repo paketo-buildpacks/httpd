@@ -155,9 +155,9 @@ func generateMetadata(hasVersion versionology.VersionFetcher) ([]versionology.De
 	dep := cargo.ConfigMetadataDependency{
 		Version:         httpdVersion,
 		ID:              "httpd",
-		Name:            "HTTPD",
+		Name:            "Apache HTTP Server",
 		Source:          release.dependencyURL,
-		SourceChecksum:  sourceSHA,
+		SourceChecksum:  fmt.Sprintf("sha256:%s", sourceSHA),
 		DeprecationDate: nil,
 		Licenses:        retrieve.LookupLicenses(release.dependencyURL, decompress),
 		PURL:            retrieve.GeneratePURL("httpd", httpdVersion, sourceSHA, release.dependencyURL),
