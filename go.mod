@@ -6,10 +6,10 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
-	github.com/anchore/syft v0.64.0 // indirect
-	github.com/bmatcuk/doublestar/v4 v4.4.0 // indirect
+	github.com/anchore/syft v0.65.0 // indirect
+	github.com/bmatcuk/doublestar/v4 v4.6.0 // indirect
 	github.com/caarlos0/env/v6 v6.10.1
-	github.com/containerd/containerd v1.6.14 // indirect
+	github.com/containerd/containerd v1.6.15 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.13.0 // indirect
 	github.com/docker/cli v20.10.22+incompatible // indirect
 	github.com/docker/docker v20.10.22+incompatible // indirect
@@ -17,7 +17,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jinzhu/copier v0.3.5 // indirect
-	github.com/klauspost/compress v1.15.13 // indirect
+	github.com/klauspost/compress v1.15.14 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/microsoft/go-rustaudit v0.0.0-20220808201409-204dfee52032 // indirect
@@ -39,11 +39,12 @@ require (
 	github.com/vbatts/go-mtree v0.5.2 // indirect
 	github.com/vifraa/gopom v0.2.1 // indirect
 	github.com/wagoodman/go-progress v0.0.0-20220614130704-4b1c25a33c7c // indirect
-	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
-	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
+	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/exp v0.0.0-20230108222341-4b8118a2686a // indirect
+	golang.org/x/tools v0.5.0 // indirect
+	google.golang.org/genproto v0.0.0-20230106154932-a12b697841d9 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	modernc.org/memory v1.5.0 // indirect
-	modernc.org/sqlite v1.20.1 // indirect
+	modernc.org/sqlite v1.20.2 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
