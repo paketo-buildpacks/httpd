@@ -10,7 +10,6 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/joshuatcasey/libdependency v0.19.0
 	github.com/paketo-buildpacks/packit/v2 v2.5.1
-	golang.org/x/crypto v0.0.0-20220919173607-35f4265a4bc0
 )
 
 require (
@@ -42,10 +41,11 @@ require (
 	github.com/shogo82148/go-shuffle v1.0.1 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xanzy/ssh-agent v0.3.2 // indirect
+	golang.org/x/crypto v0.0.0-20220919173607-35f4265a4bc0 // indirect
 	golang.org/x/exp v0.0.0-20220921164117-439092de6870 // indirect
 	golang.org/x/net v0.0.0-20220921155015-db77216a4ee9 // indirect
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
-	golang.org/x/text v0.3.8-0.20211004125949-5bd84dd9b33b // indirect
+	golang.org/x/text v0.3.8 // indirect
 	gonum.org/v1/gonum v0.12.0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
