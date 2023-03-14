@@ -2,6 +2,7 @@
 
 set -eu
 set -o pipefail
+shopt -s inherit_errexit
 
 function main() {
   local version output_dir target httpd_dir
@@ -57,16 +58,19 @@ function main() {
   httpd_dir="${install_dir}/httpd"
 
   pushd "${archives_dir}"
-    echo "Downloading APR dependency"
+    apr_version="1.7.2"
+    echo "Downloading APR dependency v${apr_version}"
 
-    curl "https://apache.osuosl.org/apr/apr-1.7.0.tar.gz" \
+    curl "https://apache.osuosl.org/apr/apr-${apr_version}.tar.gz" \
+      --fail \
+      --show-error \
       --silent \
-      --output "apr-1.7.0.tar.gz"
+      --output "apr-${apr_version}.tar.gz"
 
     tar --extract \
-      --file "apr-1.7.0.tar.gz"
+      --file "apr-${apr_version}.tar.gz"
 
-    pushd "apr-1.7.0"
+    pushd "apr-${apr_version}"
       echo "Running APR's configure script"
       mkdir "${apr_dir}"
       ./configure --prefix="${apr_dir}"
@@ -79,16 +83,19 @@ function main() {
       "${apr_dir}/build-1/libtool" --finish "${apr_dir}/lib"
     popd
 
-    echo "Downloading APR Iconf dependency"
+    apr_iconv_version="1.2.2"
+    echo "Downloading APR Iconf dependency v${apr_iconv_version}"
 
-    curl "https://apache.osuosl.org/apr/apr-iconv-1.2.2.tar.gz" \
+    curl "https://apache.osuosl.org/apr/apr-iconv-${apr_iconv_version}.tar.gz" \
+      --fail \
+      --show-error \
       --silent \
-      --output "apr-iconv-1.2.2.tar.gz"
+      --output "apr-iconv-${apr_iconv_version}.tar.gz"
 
     tar --extract \
-      --file "apr-iconv-1.2.2.tar.gz"
+      --file "apr-iconv-${apr_iconv_version}.tar.gz"
 
-    pushd "apr-iconv-1.2.2"
+    pushd "apr-iconv-${apr_iconv_version}"
       echo "Running APR Iconv's configure script"
       mkdir "${apr_iconv_dir}"
       ./configure --prefix="${apr_iconv_dir}" --with-apr="${apr_dir}/bin/apr-1-config"
@@ -98,16 +105,19 @@ function main() {
       make install
     popd
 
-    echo "Downloading APR Util dependency"
+    apr_util_version="1.6.3"
+    echo "Downloading APR Util dependency v${apr_util_version}"
 
-    curl "https://apache.osuosl.org/apr/apr-util-1.6.1.tar.gz" \
+    curl "https://apache.osuosl.org/apr/apr-util-${apr_util_version}.tar.gz" \
+      --fail \
+      --show-error \
       --silent \
-      --output "apr-util-1.6.1.tar.gz"
+      --output "apr-util-${apr_util_version}.tar.gz"
 
     tar --extract \
-      --file "apr-util-1.6.1.tar.gz"
+      --file "apr-util-${apr_util_version}.tar.gz"
 
-    pushd "apr-util-1.6.1"
+    pushd "apr-util-${apr_util_version}"
       echo "Running APR Util's configure script"
       mkdir "${apr_util_dir}"
       ./configure \
@@ -126,9 +136,11 @@ function main() {
       make install
     popd
 
-    echo "Downloading HTTPD dependency"
+    echo "Downloading HTTPD dependency v${version}"
 
     curl "http://archive.apache.org/dist/httpd/httpd-${version}.tar.bz2" \
+      --fail \
+      --show-error \
       --silent \
       --output "httpd-${version}.tar"
 
