@@ -58,9 +58,11 @@ function main() {
   httpd_dir="${install_dir}/httpd"
 
   pushd "${archives_dir}"
-    apr_version="1.7.2"
+    apr_version=$(latest_github_version "apache/apr")
     echo "Downloading APR dependency v${apr_version}"
 
+    # We use github just to get the latest version number.
+    # Github mirror does not host artificats.
     curl "https://apache.osuosl.org/apr/apr-${apr_version}.tar.gz" \
       --fail \
       --show-error \
@@ -83,7 +85,7 @@ function main() {
       "${apr_dir}/build-1/libtool" --finish "${apr_dir}/lib"
     popd
 
-    apr_iconv_version="1.2.2"
+    apr_iconv_version=$(latest_github_version "apache/apr-iconv")
     echo "Downloading APR Iconf dependency v${apr_iconv_version}"
 
     curl "https://apache.osuosl.org/apr/apr-iconv-${apr_iconv_version}.tar.gz" \
@@ -105,7 +107,7 @@ function main() {
       make install
     popd
 
-    apr_util_version="1.6.3"
+    apr_util_version=$(latest_github_version "apache/apr-util")
     echo "Downloading APR Util dependency v${apr_util_version}"
 
     curl "https://apache.osuosl.org/apr/apr-util-${apr_util_version}.tar.gz" \
@@ -200,6 +202,18 @@ function main() {
     echo "Creating checksum file for ${OUTPUT_TARBALL_NAME}"
     echo "sha256:${SHA256}" > "${OUTPUT_SHAFILE_NAME}"
   popd
+}
+
+
+function latest_github_version() {
+  local repo
+  repo="https://github.com/${1}"
+
+  # avoid -rc tags
+  git -c \
+    'versionsort.suffix=-' \
+    ls-remote --exit-code --refs --sort='version:refname' --tags "${repo}" '*.*.*' \
+    | tail -1 | cut -d/ --fields=3
 }
 
 main "${@:-}"
