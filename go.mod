@@ -3,7 +3,7 @@ module github.com/paketo-buildpacks/httpd
 go 1.18
 
 require (
-	github.com/BurntSushi/toml v1.2.1
+	github.com/BurntSushi/toml v1.3.0
 	github.com/Masterminds/semver v1.5.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/onsi/gomega v1.27.7
