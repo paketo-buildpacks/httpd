@@ -111,7 +111,7 @@ func testSimpleApp(t *testing.T, context spec.G, it spec.S) {
 					watchexecBuildpack,
 					httpdBuildpack,
 				).
-				WithPullPolicy("never").
+				WithPullPolicy("if-not-present").
 				WithEnv(map[string]string{
 					"BP_LIVE_RELOAD_ENABLED": "true",
 				}).
