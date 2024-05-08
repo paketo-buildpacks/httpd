@@ -144,10 +144,11 @@ function main() {
       --fail \
       --show-error \
       --silent \
-      --output "httpd-${version}.tar"
+      --location \
+      --output "httpd-${version}.tar.bz2"
 
     tar --extract \
-      --file "httpd-${version}.tar"
+      --file "httpd-${version}.tar.bz2"
 
     pushd "httpd-${version}"
       echo "Running HTTPD's ./configure script"
