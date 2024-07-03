@@ -13,32 +13,6 @@ api = "0.7"
   pre-package = "./scripts/build.sh"
 
   [[metadata.dependencies]]
-    checksum = "sha256:20de4237e55ee44bfe39f19d78c1d1b612002198ea4d0e502540696064fffd90"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.59:*:*:*:*:*:*:*"
-    id = "httpd"
-    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
-    name = "Apache HTTP Server"
-    purl = "pkg:generic/httpd@2.4.59?checksum=ec51501ec480284ff52f637258135d333230a7d229c3afa6f6c2f9040e321323&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.59.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.59.tar.bz2"
-    source-checksum = "sha256:ec51501ec480284ff52f637258135d333230a7d229c3afa6f6c2f9040e321323"
-    stacks = ["io.buildpacks.stacks.bionic"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.59_linux_x64_bionic_20de4237.tgz"
-    version = "2.4.59"
-
-  [[metadata.dependencies]]
-    checksum = "sha256:885c6365b6e82984428980a68037c39dbdb3e3bcd3537893c851c716d1bb41d4"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.59:*:*:*:*:*:*:*"
-    id = "httpd"
-    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
-    name = "Apache HTTP Server"
-    purl = "pkg:generic/httpd@2.4.59?checksum=ec51501ec480284ff52f637258135d333230a7d229c3afa6f6c2f9040e321323&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.59.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.59.tar.bz2"
-    source-checksum = "sha256:ec51501ec480284ff52f637258135d333230a7d229c3afa6f6c2f9040e321323"
-    stacks = ["io.buildpacks.stacks.jammy"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.59_linux_x64_jammy_885c6365.tgz"
-    version = "2.4.59"
-
-  [[metadata.dependencies]]
     checksum = "sha256:647aa6ad11995d14bff8303a54d05f506c45803991503a32c45f689a0e903192"
     cpe = "cpe:2.3:a:apache:http_server:2.4.60:*:*:*:*:*:*:*"
     id = "httpd"
@@ -63,6 +37,32 @@ api = "0.7"
     stacks = ["io.buildpacks.stacks.jammy"]
     uri = "https://artifacts.paketo.io/httpd/httpd_2.4.60_linux_x64_jammy_d5deec62.tgz"
     version = "2.4.60"
+
+  [[metadata.dependencies]]
+    checksum = "sha256:874ad77597c7167a858e66736cbadcc2c77524aaecd92bf44e2604bf375f4c7e"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.61:*:*:*:*:*:*:*"
+    id = "httpd"
+    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
+    name = "Apache HTTP Server"
+    purl = "pkg:generic/httpd@2.4.61?checksum=ea8ba86fd95bd594d15e46d25ac5bbda82ae0c9122ad93998cc539c133eaceb6&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.61.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.61.tar.bz2"
+    source-checksum = "sha256:ea8ba86fd95bd594d15e46d25ac5bbda82ae0c9122ad93998cc539c133eaceb6"
+    stacks = ["io.buildpacks.stacks.bionic"]
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.61_linux_x64_bionic_874ad775.tgz"
+    version = "2.4.61"
+
+  [[metadata.dependencies]]
+    checksum = "sha256:513741c17f9fe67af880285e810ea6076ee1ef97f3c9896b2e56045fcc0bebc8"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.61:*:*:*:*:*:*:*"
+    id = "httpd"
+    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
+    name = "Apache HTTP Server"
+    purl = "pkg:generic/httpd@2.4.61?checksum=ea8ba86fd95bd594d15e46d25ac5bbda82ae0c9122ad93998cc539c133eaceb6&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.61.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.61.tar.bz2"
+    source-checksum = "sha256:ea8ba86fd95bd594d15e46d25ac5bbda82ae0c9122ad93998cc539c133eaceb6"
+    stacks = ["io.buildpacks.stacks.jammy"]
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.61_linux_x64_jammy_513741c1.tgz"
+    version = "2.4.61"
 
   [[metadata.dependency-constraints]]
     constraint = "*"
