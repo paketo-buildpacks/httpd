@@ -13,19 +13,6 @@ api = "0.7"
   pre-package = "./scripts/build.sh"
 
   [[metadata.dependencies]]
-    checksum = "sha256:4e08fd67869b5bb95366fb977ea1b712d4c6f177e950d1adb27d782666d9a6c8"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.62:*:*:*:*:*:*:*"
-    id = "httpd"
-    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
-    name = "Apache HTTP Server"
-    purl = "pkg:generic/httpd@2.4.62?checksum=674188e7bf44ced82da8db522da946849e22080d73d16c93f7f4df89e25729ec&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.62.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.62.tar.bz2"
-    source-checksum = "sha256:674188e7bf44ced82da8db522da946849e22080d73d16c93f7f4df89e25729ec"
-    stacks = ["io.buildpacks.stacks.bionic"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.62_linux_x64_bionic_4e08fd67.tgz"
-    version = "2.4.62"
-
-  [[metadata.dependencies]]
     checksum = "sha256:074b23b032cdfce05d7a12beba63a2a1a53a8a3dfa9f0549c6616b52e63e1b38"
     cpe = "cpe:2.3:a:apache:http_server:2.4.62:*:*:*:*:*:*:*"
     id = "httpd"
@@ -37,19 +24,6 @@ api = "0.7"
     stacks = ["io.buildpacks.stacks.jammy"]
     uri = "https://artifacts.paketo.io/httpd/httpd_2.4.62_linux_x64_jammy_074b23b0.tgz"
     version = "2.4.62"
-
-  [[metadata.dependencies]]
-    checksum = "sha256:a405cc75600aa704b73e16e046ad66dac76ee62a1b580eee2ea3b0ca56d4116f"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.63:*:*:*:*:*:*:*"
-    id = "httpd"
-    licenses = ["Apache-2.0", "BSD-3-Clause", "Beerware", "RSA-MD", "SHL-0.5", "SHL-0.51", "Spencer-94"]
-    name = "Apache HTTP Server"
-    purl = "pkg:generic/httpd@2.4.63?checksum=88fc236ab99b2864b248de7d49a008ec2afd7551e64dce8b95f58f32f94c46ab&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.63.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.63.tar.bz2"
-    source-checksum = "sha256:88fc236ab99b2864b248de7d49a008ec2afd7551e64dce8b95f58f32f94c46ab"
-    stacks = ["io.buildpacks.stacks.bionic"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.63_linux_x64_bionic_a405cc75.tgz"
-    version = "2.4.63"
 
   [[metadata.dependencies]]
     checksum = "sha256:0f84d4500b1db9195f46ee49a7102a047f4edef5badb05dcfc56672436b32114"
@@ -68,9 +42,6 @@ api = "0.7"
     constraint = "*"
     id = "httpd"
     patches = 2
-
-[[stacks]]
-  id = "io.buildpacks.stacks.bionic"
 
 [[stacks]]
   id = "io.buildpacks.stacks.jammy"

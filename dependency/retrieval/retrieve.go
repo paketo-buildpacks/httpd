@@ -55,6 +55,9 @@ func getReleases(versionFilter string) ([]HttpdRelease, error) {
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file list from archive.apache.org: %w", err)
+	}
 
 	re := regexp.MustCompile(`>httpd-([\d\.]+)\.tar\.bz2<.*(\d\d\d\d-\d\d-\d\d \d\d:\d\d)`)
 
@@ -144,6 +147,9 @@ func generateMetadata(hasVersion versionology.VersionFetcher) ([]versionology.De
 	httpdVersion := hasVersion.Version().String()
 
 	releases, err := getReleases(httpdVersion)
+	if err != nil {
+		return nil, fmt.Errorf("could not get releases: %w", err)
+	}
 	release := releases[0]
 
 	sourceSHA, err := getDependencySHA(release)
@@ -162,22 +168,15 @@ func generateMetadata(hasVersion versionology.VersionFetcher) ([]versionology.De
 		Licenses:        retrieve.LookupLicenses(release.dependencyURL, decompress),
 		PURL:            retrieve.GeneratePURL("httpd", httpdVersion, sourceSHA, release.dependencyURL),
 		CPE:             fmt.Sprintf("cpe:2.3:a:apache:http_server:%s:*:*:*:*:*:*:*", httpdVersion),
-		Stacks:          []string{"io.buildpacks.stacks.bionic"},
+		Stacks:          []string{"io.buildpacks.stacks.jammy"},
 	}
-
-	bionicDependency, err := versionology.NewDependency(dep, "bionic")
-	if err != nil {
-		return nil, fmt.Errorf("could get sha: %w", err)
-	}
-
-	dep.Stacks = []string{"io.buildpacks.stacks.jammy"}
 
 	jammyDependency, err := versionology.NewDependency(dep, "jammy")
 	if err != nil {
 		return nil, fmt.Errorf("could get sha: %w", err)
 	}
 
-	return []versionology.Dependency{bionicDependency, jammyDependency}, nil
+	return []versionology.Dependency{jammyDependency}, nil
 
 }
 
@@ -202,6 +201,9 @@ func getDependencySHA(release HttpdRelease) (string, error) {
 		}
 		defer resp.Body.Close()
 		checksumContents, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("could not read checksum file: %w", err)
+		}
 
 		return strings.Fields(string(checksumContents))[0], nil
 	}
