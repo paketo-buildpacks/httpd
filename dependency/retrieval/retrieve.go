@@ -16,8 +16,9 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/joshuatcasey/libdependency/retrieve"
-	"github.com/joshuatcasey/libdependency/versionology"
+	"github.com/joshuatcasey/collections"
+	"github.com/paketo-buildpacks/libdependency/retrieve"
+	"github.com/paketo-buildpacks/libdependency/versionology"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/vacation"
 )
@@ -37,6 +38,45 @@ type HttpdRelease struct {
 
 func (httpdMetadata HttpdMetadata) Version() *semver.Version {
 	return httpdMetadata.SemverVersion
+}
+
+type StackAndTargetPair struct {
+	stacks []string
+	target string
+}
+
+var supportedStacks = []StackAndTargetPair{
+	{stacks: []string{"io.buildpacks.stacks.jammy"}, target: "jammy"},
+}
+
+var supportedPlatforms = map[string][]string{
+	"linux": {"amd64", "arm64"},
+}
+
+type PlatformStackTarget struct {
+	stacks []string
+	target string
+	os     string
+	arch   string
+}
+
+func getSuportedPlatformStackTargets() []PlatformStackTarget {
+	var platformStackTargets []PlatformStackTarget
+
+	for os, architectures := range supportedPlatforms {
+		for _, arch := range architectures {
+			for _, pair := range supportedStacks {
+				platformStackTargets = append(platformStackTargets, PlatformStackTarget{
+					stacks: pair.stacks,
+					target: pair.target,
+					os:     os,
+					arch:   arch,
+				})
+			}
+		}
+	}
+
+	return platformStackTargets
 }
 
 func main() {
@@ -157,27 +197,28 @@ func generateMetadata(hasVersion versionology.VersionFetcher) ([]versionology.De
 		return nil, fmt.Errorf("could get sha: %w", err)
 	}
 
-	// If the dependency is to be compiled, the SHA256 and URI field from the metadata should be omitted in this step.
-	dep := cargo.ConfigMetadataDependency{
-		Version:         httpdVersion,
-		ID:              "httpd",
-		Name:            "Apache HTTP Server",
-		Source:          release.dependencyURL,
-		SourceChecksum:  fmt.Sprintf("sha256:%s", sourceSHA),
-		DeprecationDate: nil,
-		Licenses:        retrieve.LookupLicenses(release.dependencyURL, decompress),
-		PURL:            retrieve.GeneratePURL("httpd", httpdVersion, sourceSHA, release.dependencyURL),
-		CPE:             fmt.Sprintf("cpe:2.3:a:apache:http_server:%s:*:*:*:*:*:*:*", httpdVersion),
-		Stacks:          []string{"io.buildpacks.stacks.jammy"},
-	}
+	cpe := fmt.Sprintf("cpe:2.3:a:apache:http_server:%s:*:*:*:*:*:*:*", httpdVersion)
+	purl := retrieve.GeneratePURL("httpd", httpdVersion, sourceSHA, release.dependencyURL)
 
-	jammyDependency, err := versionology.NewDependency(dep, "jammy")
-	if err != nil {
-		return nil, fmt.Errorf("could get sha: %w", err)
-	}
+	return collections.TransformFuncWithError(getSuportedPlatformStackTargets(), func(platformTarget PlatformStackTarget) (versionology.Dependency, error) {
+		fmt.Printf("Generating metadata for %s %s %s %s\n", platformTarget.os, platformTarget.arch, platformTarget.target, httpdVersion)
+		configMetadataDependency := cargo.ConfigMetadataDependency{
+			CPE:             cpe,
+			ID:              "httpd",
+			Licenses:        []interface{}{"Apache-2.0"},
+			Name:            "Apache HTTP Server",
+			PURL:            purl,
+			Source:          release.dependencyURL,
+			SourceChecksum:  fmt.Sprintf("sha256:%s", sourceSHA),
+			Version:         httpdVersion,
+			DeprecationDate: nil, // httpd does not have deprecation dates for versions
+			Stacks:          platformTarget.stacks,
+			OS:              platformTarget.os,
+			Arch:            platformTarget.arch,
+		}
 
-	return []versionology.Dependency{jammyDependency}, nil
-
+		return versionology.NewDependency(configMetadataDependency, platformTarget.target)
+	})
 }
 
 func dependencyVersionIsMissingChecksum(version string) bool {
