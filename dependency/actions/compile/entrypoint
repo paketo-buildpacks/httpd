@@ -215,7 +215,7 @@ function main() {
     mkdir -p "./lib/iconv"
     cp "${apr_iconv_dir}/lib/libapriconv-1.so.0" ./lib
     cp "${apr_iconv_dir}/lib/iconv/"*.so ./lib/iconv/
-    cp /usr/lib/${arch_dir}/libcjose.so* ./lib/
+    cp /usr/lib/${arch_dir}-${os}-gnu/libcjose.so* ./lib/
     cp /usr/lib/${arch_dir}-${os}-gnu/libhiredis.so* ./lib/
     cp /usr/lib/${arch_dir}-${os}-gnu/libjansson.so* ./lib/
 
