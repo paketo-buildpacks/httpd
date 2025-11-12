@@ -218,6 +218,7 @@ function main() {
     cp /usr/lib/${arch_dir}-${os}-gnu/libcjose.so* ./lib/
     cp /usr/lib/${arch_dir}-${os}-gnu/libhiredis.so* ./lib/
     cp /usr/lib/${arch_dir}-${os}-gnu/libjansson.so* ./lib/
+    cp /usr/lib/${arch_dir}-${os}-gnu/libexpat.so* ./lib/
 
     tar zcvf "${output_dir}/temp.tgz" .
   popd

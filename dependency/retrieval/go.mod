@@ -1,6 +1,6 @@
 module github.com/paketo-buildpacks/httpd/retrieval
 
-go 1.24.7
+go 1.24.10
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
@@ -40,11 +40,11 @@ require (
 	github.com/skeema/knownhosts v1.3.2 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/net v0.46.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	gonum.org/v1/gonum v0.16.0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
