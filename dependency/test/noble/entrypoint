@@ -5,7 +5,7 @@ set -euo pipefail
 extract_tarball() {
   rm -rf httpd
   mkdir httpd
-  tar -xf "/tarball_path/httpd_${version}_${os}_${arch}_jammy_"*".tgz" -C httpd/
+  tar -xf "/tarball_path/httpd_${version}_${os}_${arch}_noble_"*".tgz" -C httpd/
 }
 
 set_ld_library_path() {
@@ -90,7 +90,7 @@ main() {
   check_version
   check_server
 
-  echo "All HTTPD jammy dependency tests passed!"
+  echo "All HTTPD noble dependency tests passed!"
 }
 
 main "${@:-}"
