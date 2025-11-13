@@ -50,18 +50,23 @@ main() {
     exit 1
   fi
 
+  # When --os and --arch are provided, the --platform arg is passed to docker build and run commands.
+  # This assumes the runner has qemu and buildkit set up, and that the docker daemon and cli experimental features are enabled.
+  docker_platform_arg=""
+  if [[ "${os}" != "" && "${arch}" != "" ]]; then
+    docker_platform_arg="--platform ${os}/${arch}"
+    echo "docker commands will be called with ${docker_platform_arg}"
+  fi
+
   if [[ $(basename -- "${tarball_path}") == *"jammy"* ]]; then
     echo "Running jammy test..."
 
-    # When --os and --arch are provided, the --platform arg is passed to docker build and run commands.
-    # This assumes the runner has qemu and buildkit set up, and that the docker daemon and cli experimental features are enabled.
-    docker_platform_arg=""
-    if [[ "${os}" != "" && "${arch}" != "" ]]; then
-      docker_platform_arg="--platform ${os}/${arch}"
-      echo "docker commands will be called with ${docker_platform_arg}"
-    fi
-
     docker build -t test -f jammy/Dockerfile ${docker_platform_arg} jammy/
+    docker run --rm -v "$(dirname -- "${tarball_path}"):/tarball_path" ${docker_platform_arg} test --version "${version}" --os "${os}" --arch "${arch}"
+  elif [[ $(basename -- "${tarball_path}") == *"noble"* ]]; then
+    echo "Running noble test..."
+
+    docker build -t test -f noble/Dockerfile ${docker_platform_arg} noble/
     docker run --rm -v "$(dirname -- "${tarball_path}"):/tarball_path" ${docker_platform_arg} test --version "${version}" --os "${os}" --arch "${arch}"
   fi
 }
