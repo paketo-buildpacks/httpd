@@ -20,7 +20,6 @@ import (
 	"github.com/paketo-buildpacks/libdependency/retrieve"
 	"github.com/paketo-buildpacks/libdependency/versionology"
 	"github.com/paketo-buildpacks/packit/v2/cargo"
-	"github.com/paketo-buildpacks/packit/v2/vacation"
 )
 
 type HttpdMetadata struct {
@@ -358,7 +357,11 @@ func getSHA256(path string) (string, error) {
 	if err != nil {
 		return "nil", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 
 	hash := sha256.New()
 	_, err = io.Copy(hash, file)
@@ -374,7 +377,11 @@ func getMD5(path string) (string, error) {
 	if err != nil {
 		return "nil", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 
 	hash := md5.New()
 	_, err = io.Copy(hash, file)
@@ -403,7 +410,11 @@ func getSHA1(path string) (string, error) {
 	if err != nil {
 		return "nil", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 
 	hash := sha1.New()
 	_, err = io.Copy(hash, file)
@@ -422,17 +433,6 @@ func verifySHA1(path, expectedSHA string) error {
 
 	if actualSHA != expectedSHA {
 		return fmt.Errorf("expected SHA256 '%s' but got '%s'", expectedSHA, actualSHA)
-	}
-
-	return nil
-}
-
-func decompress(artifact io.Reader, destination string) error {
-	archive := vacation.NewArchive(artifact)
-
-	err := archive.StripComponents(1).Decompress(destination)
-	if err != nil {
-		return fmt.Errorf("failed to decompress source file: %w", err)
 	}
 
 	return nil
