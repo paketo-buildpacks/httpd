@@ -23,7 +23,11 @@ func (v VersionParser) ParseVersion(path string) (string, string, error) {
 		return "", "", fmt.Errorf("failed to parse buildpack.yml: %w", err)
 	}
 
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close file: %v\n", err)
+		}
+	}()
 
 	var buildpack struct {
 		Httpd struct {
