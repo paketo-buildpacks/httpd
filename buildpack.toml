@@ -14,63 +14,63 @@ api = "0.7"
 
   [[metadata.dependencies]]
     arch = "amd64"
-    checksum = "sha256:8ac1ae46e0c826b78d4bae36085afe42d4489862f2707c7440b81e348b511931"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.67:*:*:*:*:*:*:*"
+    checksum = "sha256:634be354c61039d60d0adc512ed5d63cb52360232565674768573bdeba251c0b"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.68:*:*:*:*:*:*:*"
     id = "httpd"
     licenses = ["Apache-2.0"]
     name = "Apache HTTP Server"
     os = "linux"
-    purl = "pkg:generic/httpd@2.4.67?checksum=66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source-checksum = "sha256:66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4"
+    purl = "pkg:generic/httpd@2.4.68?checksum=68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source-checksum = "sha256:68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06"
     stacks = ["io.buildpacks.stacks.jammy"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.67_linux_amd64_jammy_8ac1ae46.tgz"
-    version = "2.4.67"
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.68_linux_amd64_jammy_634be354.tgz"
+    version = "2.4.68"
 
   [[metadata.dependencies]]
     arch = "arm64"
-    checksum = "sha256:60114a2fc6546dea283ef6ebaae09aab60ff0af7722f67e0293839281097b38d"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.67:*:*:*:*:*:*:*"
+    checksum = "sha256:0b9ceff9bbfeb2525b37679eb641e76b795c87208d110a1f8a485b1134d33ad4"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.68:*:*:*:*:*:*:*"
     id = "httpd"
     licenses = ["Apache-2.0"]
     name = "Apache HTTP Server"
     os = "linux"
-    purl = "pkg:generic/httpd@2.4.67?checksum=66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source-checksum = "sha256:66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4"
+    purl = "pkg:generic/httpd@2.4.68?checksum=68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source-checksum = "sha256:68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06"
     stacks = ["io.buildpacks.stacks.jammy"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.67_linux_arm64_jammy_60114a2f.tgz"
-    version = "2.4.67"
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.68_linux_arm64_jammy_0b9ceff9.tgz"
+    version = "2.4.68"
 
   [[metadata.dependencies]]
     arch = "amd64"
-    checksum = "sha256:68a9b6594c4098de886d7f8a209a2a160b568743a0aa26dd18036231b73f1a33"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.67:*:*:*:*:*:*:*"
+    checksum = "sha256:150132a4821eec6665b69896790c7cd74f280a6d6470f91fd885aa93ff3553de"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.68:*:*:*:*:*:*:*"
     id = "httpd"
     licenses = ["Apache-2.0"]
     name = "Apache HTTP Server"
     os = "linux"
-    purl = "pkg:generic/httpd@2.4.67?checksum=66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source-checksum = "sha256:66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4"
+    purl = "pkg:generic/httpd@2.4.68?checksum=68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source-checksum = "sha256:68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06"
     stacks = ["io.buildpacks.stacks.noble"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.67_linux_amd64_noble_68a9b659.tgz"
-    version = "2.4.67"
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.68_linux_amd64_noble_150132a4.tgz"
+    version = "2.4.68"
 
   [[metadata.dependencies]]
     arch = "arm64"
-    checksum = "sha256:6f6a8e635cc2e4039cfa80612f3ff5699568a0ab2250451e8653544379881091"
-    cpe = "cpe:2.3:a:apache:http_server:2.4.67:*:*:*:*:*:*:*"
+    checksum = "sha256:c2b02cf9f90dc71f7f0bce077a59a524d09f0aa208b78ffbd9697eb5957a2d99"
+    cpe = "cpe:2.3:a:apache:http_server:2.4.68:*:*:*:*:*:*:*"
     id = "httpd"
     licenses = ["Apache-2.0"]
     name = "Apache HTTP Server"
     os = "linux"
-    purl = "pkg:generic/httpd@2.4.67?checksum=66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source = "http://archive.apache.org/dist/httpd/httpd-2.4.67.tar.bz2"
-    source-checksum = "sha256:66cd206637b0d5c446fa7dabe75fe03525da8fb55855876c46288cd88b136aa4"
+    purl = "pkg:generic/httpd@2.4.68?checksum=68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06&download_url=http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source = "http://archive.apache.org/dist/httpd/httpd-2.4.68.tar.bz2"
+    source-checksum = "sha256:68c74d4df38c26bed4dfbdb8f3baf1eb532f3872357becc1bba5d136f6b63c06"
     stacks = ["io.buildpacks.stacks.noble"]
-    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.67_linux_arm64_noble_6f6a8e63.tgz"
-    version = "2.4.67"
+    uri = "https://artifacts.paketo.io/httpd/httpd_2.4.68_linux_arm64_noble_c2b02cf9.tgz"
+    version = "2.4.68"
 
   [[metadata.dependency-constraints]]
     constraint = "*"
