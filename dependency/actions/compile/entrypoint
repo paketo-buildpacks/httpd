@@ -222,9 +222,11 @@ function main() {
     cp /usr/lib/${arch_dir}-${os}-gnu/libjansson.so* ./lib/
     cp /usr/lib/${arch_dir}-${os}-gnu/libexpat.so* ./lib/
 
-    # for some reason this library is not included with Noble, so we bundle it
+    # These libraries are not included in the respective base images, so bundle them.
     if [ "${target}" == "noble" ]; then
       cp /usr/lib/${arch_dir}-${os}-gnu/libpcre.so* ./lib/
+    elif [ "${target}" == "resolute" ]; then
+      cp /usr/lib/${arch_dir}-${os}-gnu/libpcre2-8.so* ./lib/
     fi
 
     tar zcvf "${output_dir}/temp.tgz" .
