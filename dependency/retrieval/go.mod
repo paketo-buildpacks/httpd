@@ -6,7 +6,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/joshuatcasey/collections v0.5.0
 	github.com/paketo-buildpacks/libdependency v0.2.1
-	github.com/paketo-buildpacks/packit/v2 v2.25.8
+	github.com/paketo-buildpacks/packit/v2 v2.26.0
 )
 
 require (
