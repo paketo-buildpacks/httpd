@@ -6,6 +6,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/paketo-buildpacks/packit/v2"
+	"github.com/paketo-buildpacks/packit/v2/cargo"
 	"github.com/paketo-buildpacks/packit/v2/chronos"
 	"github.com/paketo-buildpacks/packit/v2/postal"
 	"github.com/paketo-buildpacks/packit/v2/sbom"
@@ -147,8 +148,14 @@ func Build(
 			}
 		}
 
+		dependencyChecksum := dependency.Checksum
+		if dependencyChecksum == "" {
+			//nolint:staticcheck // SHA256 is only a fallback in case Checksum is not present
+			dependencyChecksum = dependency.SHA256
+		}
+
 		cachedSHA, ok := httpdLayer.Metadata["cache_sha"].(string)
-		if ok && cachedSHA == dependency.SHA256 { //nolint:staticcheck
+		if ok && cachedSHA != "" && cargo.Checksum(cachedSHA).MatchString(dependencyChecksum) {
 			logger.Process("Reusing cached layer %s", httpdLayer.Path)
 			logger.Break()
 
@@ -181,7 +188,7 @@ func Build(
 		logger.Break()
 
 		httpdLayer.Metadata = map[string]interface{}{
-			"cache_sha": dependency.SHA256, //nolint:staticcheck
+			"cache_sha": dependencyChecksum,
 		}
 
 		httpdLayer.LaunchEnv.Override("APP_ROOT", context.WorkingDir)
