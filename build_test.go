@@ -3,6 +3,7 @@ package httpd_test
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -550,6 +551,86 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			}))
 
 			Expect(dependencyService.DeliverCall.CallCount).To(Equal(0))
+		})
+	})
+
+	context("when the dependency carries a checksum rather than a sha256", func() {
+		var buildContext packit.BuildContext
+
+		it.Before(func() {
+			dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
+				ID:       "httpd",
+				Checksum: "sha256:some-checksum",
+				Source:   "some-source",
+				Stacks:   []string{"some-stack"},
+				URI:      "some-uri",
+				Version:  "some-env-var-version",
+			}
+
+			entryResolver.MergeLayerTypesCall.Returns.Launch = true
+
+			buildContext = packit.BuildContext{
+				BuildpackInfo: packit.BuildpackInfo{
+					Name:    "Some Buildpack",
+					Version: "1.2.3",
+				},
+				WorkingDir: workingDir,
+				Layers:     packit.Layers{Path: layersDir},
+				CNBPath:    cnbPath,
+				Stack:      "some-stack",
+				Plan: packit.BuildpackPlan{
+					Entries: []packit.BuildpackPlanEntry{
+						{
+							Name: "httpd",
+							Metadata: map[string]interface{}{
+								"version-source": "BP_HTTPD_VERSION",
+								"version":        "some-env-var-version",
+								"launch":         true,
+							},
+						},
+					},
+				},
+			}
+		})
+
+		it("rebuilds the layer when a later build resolves a different dependency", func() {
+			result, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dependencyService.DeliverCall.CallCount).To(Equal(1))
+
+			// Persist the layer metadata the way the lifecycle does between builds.
+			cached, ok := result.Layers[0].Metadata["cache_sha"].(string)
+			Expect(ok).To(BeTrue())
+			Expect(os.WriteFile(filepath.Join(layersDir, "httpd.toml"),
+				[]byte(fmt.Sprintf("[metadata]\ncache_sha = %q\n", cached)), 0600)).To(Succeed())
+
+			dependencyService.ResolveCall.Returns.Dependency = postal.Dependency{
+				ID:       "httpd",
+				Checksum: "sha256:other-checksum",
+				Source:   "other-source",
+				Stacks:   []string{"some-stack"},
+				URI:      "other-uri",
+				Version:  "other-version",
+			}
+
+			_, err = build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dependencyService.DeliverCall.CallCount).To(Equal(2))
+		})
+
+		it("reuses the layer when a later build resolves the same dependency", func() {
+			result, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dependencyService.DeliverCall.CallCount).To(Equal(1))
+
+			cached, ok := result.Layers[0].Metadata["cache_sha"].(string)
+			Expect(ok).To(BeTrue())
+			Expect(os.WriteFile(filepath.Join(layersDir, "httpd.toml"),
+				[]byte(fmt.Sprintf("[metadata]\ncache_sha = %q\n", cached)), 0600)).To(Succeed())
+
+			_, err = build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(dependencyService.DeliverCall.CallCount).To(Equal(1))
 		})
 	})
 
